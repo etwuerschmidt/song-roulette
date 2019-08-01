@@ -1,3 +1,9 @@
-#Don't track
-/users.json
-/.cache-Eric Wuerschmidt
+#Directories
+**/build
+**/dist
+**/__pycache__
+
+#Files
+*.json
+*.cache-Eric Wuerschmidt
+*.egg-info

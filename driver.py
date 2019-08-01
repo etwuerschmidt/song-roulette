@@ -13,7 +13,7 @@ channel_name = "#sr-test" if test else "#dank-tunes"
 
 if day_of_month == (day_of_month if test else 1):
 	old_playlist_name = f"{playlist_prefix}{last_month_name}"
-	all_playlist = f"{playlist_prefix}All"
+	all_playlist = f"{playlist_prefix}All Songs"
 	new_playlist_name = f"{playlist_prefix}{current_month_name}"
 
 	sl_client = SlackClient()

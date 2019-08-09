@@ -11,4 +11,5 @@ setup(
 	license='',
 	description='Slack Client for song roulette integration',
 	long_description='',
+	zip_safe=True
 )

@@ -5,7 +5,7 @@ Refresh monthly collaborative playlist and retrieve information for analysis usi
 1. ~~Monthly playlist wipe~~
 	- ~~Move from 'Song Roulette: $MONTH' to 'Song Roulette: All'~~
 2. Stats gathering - temporary
-	- Number of songs per user
+	- ~~Number of songs per user~~
 	- Audio analysis
 	- Frequency of adding
 3. Stats gathering - permanent

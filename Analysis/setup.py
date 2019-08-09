@@ -1,15 +1,15 @@
 from setuptools import setup
 
 setup(
-	name='SpotifyClient',
+	name='AnalysisClient',
 	url='',
 	author='Eric Wuerschmidt',
 	author_email='ericwuerschmidt@gmail.com',
-	packages=['SpotifyClient'],
-	install_requires=['spotipy'],
+	packages=['AnalysisClient'],
+	install_requires=['plotly', 'pandas'],
 	version='0.1',
 	license='',
-	description='Spotify Client for song roulette refresh / analysis',
+	description='Client for song roulette analysis',
 	long_description='',
 	zip_safe=True
 )

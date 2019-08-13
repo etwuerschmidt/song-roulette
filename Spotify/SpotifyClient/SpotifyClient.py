@@ -28,9 +28,17 @@ class SpotifyClient():
         self.client = spotipy.Spotify(auth=token) if token else None
 
     def get_audio_features(self, songs):
-        """Returns audio features given a list of songs"""
-        song_features = [self.client.audio_features(song)[0] for song in songs]     
-        return song_features
+        """Returns audio features given a list of songs. Audio features call does not support offsetting, so list slicing is required."""
+        counter = 0
+        track_count = 100
+        all_features = []
+        while track_count == 100:
+            end_slice = 100*(counter+1) if len(songs) > 100*(counter + 1) else len(songs)
+            song_features = self.client.audio_features(songs[100*counter:end_slice])
+            all_features += song_features
+            track_count = len(song_features)
+            counter += 1
+        return all_features
 
     #TODO: Add year confirmation to this method to avoid multiple months being returned
     def get_month_tracks(self, playlist_name, month, fields=None):
@@ -102,10 +110,10 @@ class SpotifyClient():
 if __name__ == "__main__":
     my_client = SpotifyClient()
     my_client.connect()
-    july_tracks = my_client.get_month_tracks("Song Roulette: All Songs", 7, fields='items(added_at,track(name))')
-    print(july_tracks)
+    my_client.fields_filter = None
+    pl_tracks = my_client.get_playlist_tracks("Tabletops", fields='items(track(name,popularity,uri))')
     track_uris = []
-    # for track in tracks:
-    #     filtered_tracks.append(track['track']['uri'])
-    # print(my_client.get_audio_features(filtered_tracks))
+    for track in pl_tracks:
+        track_uris.append(track['track']['uri'])
+    print(len(my_client.get_audio_features(track_uris)))
     exit()

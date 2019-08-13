@@ -9,7 +9,7 @@ for file in *; do
 				python setup.py install > NUL
 				cd ..
 				echo "Installation complete"
-				exit 1
+				exit
 			fi
 		else
 			echo "Installing module for $file"
@@ -20,4 +20,4 @@ for file in *; do
 	fi
 done
 echo "Installation complete"
-exit 1
+exit

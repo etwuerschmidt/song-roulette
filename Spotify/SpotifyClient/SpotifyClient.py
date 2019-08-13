@@ -18,9 +18,9 @@ class SpotifyClient():
         self.sr_analysis = True
         self.user_id = None
         self.username = None
-        if self.user_id == None or self.username == None:
-            print("Check user ID and username in SpotifyClient!")
-            exit()
+        # if self.user_id == None or self.username == None:
+        #     print("Check user ID and username in SpotifyClient!")
+        #     exit()
 
     def connect(self):
         """Authentication for Spotify Client"""

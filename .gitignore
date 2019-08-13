@@ -3,7 +3,7 @@
 **/dist
 **/__pycache__
 
-#Files
+#File extensions
 *.json
 *.cache-Eric Wuerschmidt
 *.egg-info

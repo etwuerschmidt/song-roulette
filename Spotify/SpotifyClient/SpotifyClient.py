@@ -29,16 +29,7 @@ class SpotifyClient():
 
     def get_audio_features(self, songs):
         """Returns audio features given a list of songs. Audio features call does not support offsetting, so list slicing is required."""
-        counter = 0
-        track_count = 100
-        all_features = []
-        while track_count == 100:
-            end_slice = 100*(counter+1) if len(songs) > 100*(counter + 1) else len(songs)
-            song_features = self.client.audio_features(songs[100*counter:end_slice])
-            all_features += song_features
-            track_count = len(song_features)
-            counter += 1
-        return all_features
+        return self.max_out_with_slice(self.client.audio_features, songs)
 
     #TODO: Add year confirmation to this method to avoid multiple months being returned
     def get_month_tracks(self, playlist_name, month, fields=None):
@@ -73,31 +64,46 @@ class SpotifyClient():
         """Returns the filtered track information of a given playlist name"""
         fields = self.fields_filter if fields is None else fields
         pid = self.get_playlist_id(playlist_name)
-        counter = 0
-        track_count = 100
-        all_tracks = []
-        while track_count == 100:
-            tracks = self.client.user_playlist_tracks(self.user_id, pid, fields=fields, offset=100*counter)
-            all_tracks += tracks['items']
-            track_count = len(tracks['items'])
-            counter += 1
-        return all_tracks
+        return self.max_out_with_offset(self.client.user_playlist_tracks, user=self.user_id, playlist_id=pid, fields=fields)
 
     def get_playlist_url(self, playlist_name):
         """Returns a playlist URL for a given playlist name"""
         playlist = self.client.user_playlist(self.user_id, self.get_playlist_id(playlist_name))
         return playlist['external_urls']['spotify']
- 
+
+    def max_out_with_slice(self, method_name, tracks, **kwargs):
+        """Makes multiple requests when information is needed for >100 tracks for API endpoints that don't support offset"""
+        counter = 0
+        track_count = 100
+        all_items = []
+        while track_count == 100:
+            end_slice = 100*(counter+1) if len(tracks) > 100*(counter + 1) else len(tracks)
+            items = method_name(tracks=tracks[100*counter:end_slice], **kwargs)
+            all_items += items
+            track_count = end_slice - 100*counter
+            counter += 1
+        return all_items   
+
+    def max_out_with_offset(self, method_name, **kwargs):
+        """Makes multiple requests when information is needed for >100 tracks for API endpoints that support offset"""
+        counter = 0
+        track_count = 100
+        all_items = []
+        while track_count == 100:
+            items = method_name(**kwargs, offset=100*counter)
+            all_items += items['items']
+            track_count = len(items['items'])
+            counter += 1
+        return all_items
+
     def move_tracks(self, from_playlist, to_playlist):
         """Move all tracks from one playlist to another"""
         from_id = self.get_playlist_id(from_playlist)
         to_id = self.get_playlist_id(to_playlist)
-        tracks_to_move = []
-        tracks = self.client.user_playlist_tracks(self.user_id, playlist_id=from_id)
-        for track in tracks['items']:
-            tracks_to_move.append(track['track']['uri'])
-        self.client.user_playlist_add_tracks(self.user_id, to_id, tracks_to_move)
-        self.client.user_playlist_remove_all_occurrences_of_tracks(self.user_id, from_id, tracks_to_move)
+        tracks = self.get_playlist_tracks(from_playlist)
+        tracks_to_move = [track['track']['uri'] for track in tracks]
+        self.max_out_with_slice(self.client.user_playlist_add_tracks, tracks_to_move, user=self.user_id, playlist_id=to_id)
+        self.max_out_with_slice(self.client.user_playlist_remove_all_occurrences_of_tracks, tracks_to_move, user=self.user_id, playlist_id=from_id)
 
     def rename_playlist(self, old_playlist_name, new_playlist_name):
         """Renames a playlist given old and new playlists"""

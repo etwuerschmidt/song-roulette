@@ -7,7 +7,7 @@ import spotipy.util as util
 class SpotifyClient():
     """Class for handling all Spotify API requests"""
 
-    def __init__(self):
+    def __init__(self, user_id=None, username=None):
         """Initializes an object with all necessary items to create a Spotify Client"""
         self.client = None
         self.client_id = os.environ['SPOTIPY_CLIENT_ID']
@@ -15,17 +15,23 @@ class SpotifyClient():
         self.fields_filter = 'items(added_at,added_by,track(name,popularity,uri))'
         self.redirect_uri = os.environ['SPOTIPY_REDIRECT_URI']
         self.scope = "playlist-read-collaborative playlist-read-private playlist-modify-private playlist-modify-public"
-        self.sr_analysis = True
-        self.user_id = None
-        self.username = None
-        # if self.user_id == None or self.username == None:
-        #     print("Check user ID and username in SpotifyClient!")
-        #     exit()
+        # all_songs_sr_analysis should be taken into account for Song Roulette: All, since songs for a particular month are added on the first day
+        # of the following month
+        self.all_songs_sr_analysis = False
+        self.user_id = user_id
+        self.username = username
+        if self.user_id == None or self.username == None:
+            print("Check user ID and username in SpotifyClient!")
+            exit()
 
     def connect(self):
         """Authentication for Spotify Client"""
         token = util.prompt_for_user_token(self.username, self.scope, client_id=self.client_id, client_secret=self.client_secret, redirect_uri=self.redirect_uri)
         self.client = spotipy.Spotify(auth=token) if token else None
+
+    def filter_tracks(self, playlist_items, field):
+        """Return a list of playlist items with the given filter field"""
+        return [track['track'][field] for track in playlist_items]
 
     def get_audio_features(self, songs):
         """Returns audio features given a list of songs. Audio features call does not support offsetting, so list slicing is required."""
@@ -43,7 +49,7 @@ class SpotifyClient():
         filtered_tracks = []
         tracks = self.get_playlist_tracks(playlist_name, fields=fields)
         for track in tracks:
-            if datetime.datetime.strptime(track['added_at'], '%Y-%m-%dT%H:%M:%SZ').month - int(self.sr_analysis) == month:
+            if datetime.datetime.strptime(track['added_at'], '%Y-%m-%dT%H:%M:%SZ').month - int(self.all_songs_sr_analysis) == month:
                 filtered_tracks.append(track)
         return filtered_tracks
 
@@ -118,8 +124,6 @@ if __name__ == "__main__":
     my_client.connect()
     my_client.fields_filter = None
     pl_tracks = my_client.get_playlist_tracks("Tabletops", fields='items(track(name,popularity,uri))')
-    track_uris = []
-    for track in pl_tracks:
-        track_uris.append(track['track']['uri'])
+    track_uris = my_client.filter_tracks(pl_tracks,'uri')
     print(len(my_client.get_audio_features(track_uris)))
     exit()

@@ -6,7 +6,7 @@ setup(
 	author='Eric Wuerschmidt',
 	author_email='ericwuerschmidt@gmail.com',
 	packages=['AnalysisClient'],
-	install_requires=['plotly', 'pandas'],
+	install_requires=['plotly', 'pandas', 'psutil', 'requests'],
 	version='0.1',
 	license='',
 	description='Client for song roulette analysis',

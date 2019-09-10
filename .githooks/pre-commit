@@ -1,0 +1,8 @@
+#!/bin/sh
+./install.sh
+python hook-pre-commit.py
+if [ $? -ne 0 ]; then 
+	git reset
+	exit 1
+fi
+exit

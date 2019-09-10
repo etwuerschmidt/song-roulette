@@ -6,7 +6,7 @@ for file in *; do
 			if [[ "$file" == "$MOD1" ]]; then
 				echo "Installing module for $file"
 				cd $file
-				python setup.py install > NUL
+				python setup.py install > $file.install.log
 				cd ..
 				echo "Installation complete"
 				exit
@@ -14,7 +14,7 @@ for file in *; do
 		else
 			echo "Installing module for $file"
 			cd $file
-			python setup.py install > NUL
+			python setup.py install > $file.install.log
 			cd ..
 		fi
 	fi

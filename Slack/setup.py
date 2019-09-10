@@ -6,7 +6,7 @@ setup(
 	author='Eric Wuerschmidt',
 	author_email='ericwuerschmidt@gmail.com',
 	packages=['SlackClient'],
-	install_requires=['slackclient'],
+	install_requires=['slackclient', 'slack'],
 	version='0.1',
 	license='',
 	description='Slack Client for song roulette integration',

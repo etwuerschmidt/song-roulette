@@ -5,14 +5,16 @@ from SlackClient.SlackClient import SlackClient
 from SpotifyClient.SpotifyClient import SpotifyClient
 
 test = True
+live_run_day = 1
 
 day_of_month = date.today().day
+
 current_month_name = date.today().strftime("%B")
-last_month_name = (date.today() - (timedelta(weeks=5) if test else timedelta(1))).strftime("%B")
+last_month_name = (date.today() - (timedelta(weeks=5) if test else timedelta(live_run_day))).strftime("%B")
 playlist_prefix = "TEST " if test else "Song Roulette: "
 channel_name = "#sr-test" if test else "#dank-tunes"
 
-if day_of_month == (day_of_month if test else 1):
+if day_of_month == (day_of_month if test else live_run_day):
 	old_playlist_name = f"{playlist_prefix}{last_month_name}"
 	all_playlist = f"{playlist_prefix}All Songs"
 	new_playlist_name = f"{playlist_prefix}{current_month_name}"

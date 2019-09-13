@@ -1,4 +1,6 @@
 #!/bin/sh
+#Installation for all python modules in repo
+#A single module can be specified for install as a command line argument 
 MOD1=${1:-none}
 for file in *; do
 	if [[ -d $file ]]; then

@@ -6,7 +6,7 @@ setup(
 	author='Eric Wuerschmidt',
 	author_email='ericwuerschmidt@gmail.com',
 	packages=['DatabaseClient'],
-	install_requires=[''],
+	install_requires=['psycopg2'],
 	version='0.1',
 	license='',
 	description='Client for song roulette database information storage',

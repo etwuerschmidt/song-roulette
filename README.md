@@ -11,4 +11,7 @@ and update the following property to setup applicable git hooks
 git config core.hooksPath .githooks
 ```
 
-If saving Plotly figures, download Orca using your preferred method from https://github.com/plotly/orca
+The following additional installations are needed:
+	- Orca for saving Plotly figures https://github.com/plotly/orca
+	- Heroku CLI for hosted DB https://devcenter.heroku.com/articles/heroku-cli
+	- Postgres for local DB validation https://www.enterprisedb.com/downloads/postgres-postgresql-downloads#windows

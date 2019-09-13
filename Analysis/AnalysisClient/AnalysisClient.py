@@ -1,42 +1,49 @@
 import datetime
+import os
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go 
 
 class Plotter():
-    """Used to plot information processed by functions below"""
-    def __init__(self):
-        self.name = "Plotter"
+    """Class to plot a variety of graphs"""
+    
+    def __init__(self, display=False, save=False):
+        self.display = display
+        self.save = save
 
-    def bar_graph(self, x, y, xaxis=None, yaxis=None, title='bar_graph', display=False, save=False):
+    def bar_graph(self, x, y, xaxis=None, yaxis=None, title='bar_graph'):
+        """Create a bar graph with provided information"""
         fig = go.Figure([go.Bar(x=list(x), y=list(y))])
         fig.update_layout(title=title,
-           xaxis_title=xaxis,
-           yaxis_title=yaxis)
-        if display:
-            fig.show()
-        if save:
-            fig.write_image(f"images/{title}.png")
+                          xaxis_title=xaxis,
+                          yaxis_title=yaxis)
+        self.graph_view_save(fig)
 
-    def line_graph(self, x, y, xaxis=None, yaxis=None, title='line_graph', display=False, save=False):
+    def graph_view_save(self, fig):
+        if self.display:
+            fig.show()
+        if self.save:
+            if not os.path.exists("images"):
+                os.mkdir("images")
+            image_name = fig.layout['title']['text'].replace(" ", "_")
+            fig.write_image(f"images/{image_name}.png")
+
+    def line_graph(self, x, y, xaxis=None, yaxis=None, title='line_graph'):
+        """Create a line graph with provided information"""
         fig = go.Figure(data=go.Scatter(x=list(x), y=list(y)))
         fig.update_layout(title=title,
-           xaxis_title=xaxis,
-           yaxis_title=yaxis)
-        if display:
-            fig.show()
-        if save:
-            fig.write_image(f"images/{title}.png")
+                          xaxis_title=xaxis,
+                          yaxis_title=yaxis)
+        self.graph_view_save(fig)
 
-    def radar_graph(self, audio_features, title='radar_graph', display=False, save=False):
-        df = pd.DataFrame(dict(r=list(audio_features.values()), theta=list(audio_features.keys())))
-        fig = px.line_polar(df,r='r', theta='theta', line_close=True)
+    def radar_graph(self, data, title='radar_graph'):
+        """Create a radar graph with provided information"""
+        df = pd.DataFrame(dict(r=list(data.values()), theta=list(data.keys())))
+        fig = px.line_polar(df, r='r', theta='theta', line_close=True)
         fig.update_traces(fill='toself')
         fig.update_layout(title=title)
-        if display:
-            fig.show()
-        if save:
-            fig.write_image(f"images/{title}.png")
+        self.graph_view_save(fig)
+
 
 def avg_audio_features(song_features):
     """Returns the avg audio features for a given list of songs"""
@@ -97,4 +104,6 @@ def track_count_per_user(playlist_items):
     return user_song_counter
 
 if __name__ == "__main__":
+    myPlot = Plotter(save=True)
+    myPlot.line_graph([1,2,3], [1,2,3], title='Test Plot')
     exit()

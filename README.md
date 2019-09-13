@@ -10,3 +10,5 @@ and update the following property to setup applicable git hooks
 ```bash
 git config core.hooksPath .githooks
 ```
+
+If saving Plotly figures, download Orca using your preferred method from https://github.com/plotly/orca

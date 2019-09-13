@@ -37,7 +37,6 @@ class SpotifyClient():
         """Returns audio features given a list of songs. Audio features call does not support offsetting, so list slicing is required."""
         return self.max_out_with_slice(self.client.audio_features, songs)
 
-    #TODO: Add year confirmation to this method to avoid multiple months being returned
     def get_month_tracks(self, playlist_name, month, fields=None):
         """Returns the filtered track information of a given playlist name for tracks added in a specific month"""
         if type(month) is str:

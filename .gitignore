@@ -1,6 +1,7 @@
 #Directories
 **/build
 **/dist
+**/images
 **/__pycache__
 
 #File extensions

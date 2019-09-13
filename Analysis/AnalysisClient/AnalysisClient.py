@@ -8,28 +8,35 @@ class Plotter():
     def __init__(self):
         self.name = "Plotter"
 
-    def bar_graph(self, x, y, xaxis=None, yaxis=None, title=None):
+    def bar_graph(self, x, y, xaxis=None, yaxis=None, title='bar_graph', display=False, save=False):
         fig = go.Figure([go.Bar(x=list(x), y=list(y))])
         fig.update_layout(title=title,
            xaxis_title=xaxis,
            yaxis_title=yaxis)
-        fig.show()
+        if display:
+            fig.show()
+        if save:
+            fig.write_image(f"images/{title}.png")
 
-    def line_graph(self, x, y, xaxis=None, yaxis=None, title=None):
+    def line_graph(self, x, y, xaxis=None, yaxis=None, title='line_graph', display=False, save=False):
         fig = go.Figure(data=go.Scatter(x=list(x), y=list(y)))
         fig.update_layout(title=title,
            xaxis_title=xaxis,
            yaxis_title=yaxis)
-        fig.show()
-        #fig.write_image("line_graph.png")
+        if display:
+            fig.show()
+        if save:
+            fig.write_image(f"images/{title}.png")
 
-    def radar_graph(self, audio_features, title=None):
+    def radar_graph(self, audio_features, title='radar_graph', display=False, save=False):
         df = pd.DataFrame(dict(r=list(audio_features.values()), theta=list(audio_features.keys())))
         fig = px.line_polar(df,r='r', theta='theta', line_close=True)
         fig.update_traces(fill='toself')
         fig.update_layout(title=title)
-        fig.show()
-        #fig.write_image("radar.png")
+        if display:
+            fig.show()
+        if save:
+            fig.write_image(f"images/{title}.png")
 
 def avg_audio_features(song_features):
     """Returns the avg audio features for a given list of songs"""

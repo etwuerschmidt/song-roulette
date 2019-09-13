@@ -14,9 +14,11 @@ for file in *; do
 				exit
 			fi
 		else
-			echo "Installing module for $file"
 			cd $file
-			python setup.py install > $file.install.log
+			if [[ -f setup.py ]]; then
+				echo "Installing module for $file"
+				python setup.py install > $file.install.log
+			fi
 			cd ..
 		fi
 	fi

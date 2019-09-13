@@ -35,23 +35,28 @@ def main():
 		sp_client.rename_playlist(new_playlist_name, old_playlist_name)
 		print(f"Songs from {all_playlist} were moved back to {old_playlist_name}")
 	elif day_of_month == (day_of_month if test else live_run_day):
-		if args.live:
-			if input('You\'ve specified a LIVE run. Enter Y to continue: ') != 'Y':
-				exit()
+		#Analysis
 		month_tracks = sp_client.get_playlist_tracks(old_playlist_name)
-		sp_client.move_tracks(old_playlist_name, all_playlist)
-		sp_client.rename_playlist(old_playlist_name, new_playlist_name)
-		current_playlist_link = sp_client.get_playlist_url(new_playlist_name)
 		user_count = ac.track_count_per_user(month_tracks)
-		sl_client.set_channel(channel_name)
-		sl_client.post_message(f"{playlist_prefix}{current_month_name} is now ready! Add songs here: {current_playlist_link}")
 		stats_message = ""
 		for key, value in user_count.items():
 			stats_message += f"User ID: {key} added {value} songs\n"
+		
+		#Spotify refresh
+		if args.live:
+			if input(f"You've specified a LIVE run. {old_playlist_name} will be moved to {all_playlist}. Enter Y to continue: ") != 'Y':
+				exit()
+		sp_client.move_tracks(old_playlist_name, all_playlist)
+		sp_client.rename_playlist(old_playlist_name, new_playlist_name)
+		current_playlist_link = sp_client.get_playlist_url(new_playlist_name)
+
+		#Slack notification
+		sl_client.set_channel(channel_name)
+		sl_client.post_message(f"{playlist_prefix}{current_month_name} is now ready! Add songs here: {current_playlist_link}")
 		sl_client.post_message(f"Thanks to everyone who contributed last month!\n{stats_message}")
-		print("This was a test run. Check test playlists and channel. Flip test bool for live run.") if test else print("This was a LIVE run.")
+		print("This was a test run. Check test playlists and channel.") if test else print("This was a LIVE run.")
 	else:
-		print("The playlist shouldn't be refreshed today!")
+		print(f"Please enter the current day ({day_of_month}) if you would like to refresh the monthly playlist. You entered {live_run_day}.")
 
 main()
 exit()

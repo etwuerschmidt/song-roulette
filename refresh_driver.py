@@ -1,3 +1,4 @@
+# Script for monthly refresh
 import AnalysisClient.AnalysisClient as ac 
 import argparse
 import datetime
@@ -12,6 +13,7 @@ parser.add_argument('--reset-test', help='Reset the testing playlists', action='
 args = parser.parse_args()
 
 def main():
+	"""Refreshes playlist and performs all optional analysis"""
 	test = args.test or args.reset_test
 	live_run_day = args.live
 	day_of_month = date.today().day
@@ -35,14 +37,14 @@ def main():
 		sp_client.rename_playlist(new_playlist_name, old_playlist_name)
 		print(f"Songs from {all_playlist} were moved back to {old_playlist_name}")
 	elif day_of_month == (day_of_month if test else live_run_day):
-		#Analysis
+		# Analysis
 		month_tracks = sp_client.get_playlist_tracks(old_playlist_name)
 		user_count = ac.track_count_per_user(month_tracks)
 		stats_message = ""
 		for key, value in user_count.items():
 			stats_message += f"User ID: {key} added {value} songs\n"
 		
-		#Spotify refresh
+		# Spotify refresh
 		if args.live:
 			if input(f"You've specified a LIVE run. {old_playlist_name} will be moved to {all_playlist}. Enter Y to continue: ") != 'Y':
 				exit()
@@ -50,7 +52,7 @@ def main():
 		sp_client.rename_playlist(old_playlist_name, new_playlist_name)
 		current_playlist_link = sp_client.get_playlist_url(new_playlist_name)
 
-		#Slack notification
+		# Slack notification
 		sl_client.set_channel(channel_name)
 		sl_client.post_message(f"{playlist_prefix}{current_month_name} is now ready! Add songs here: {current_playlist_link}")
 		sl_client.post_message(f"Thanks to everyone who contributed last month!\n{stats_message}")

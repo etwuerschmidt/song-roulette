@@ -88,15 +88,17 @@ def track_count_per_month(playlist_items, all_songs_sr_analysis=False):
     month_song_counter = {}
     month_range = []
     eval_playlist_year = None
-    prev_track_year = None
+    prev_track_year = datetime.datetime.strptime(playlist_items[0]['added_at'], '%Y-%m-%dT%H:%M:%SZ').year
     curr_year = date.today().year
     for track in playlist_items:
         track_date = datetime.datetime.strptime(track['added_at'], '%Y-%m-%dT%H:%M:%SZ')
-        if track_date.year != prev_track_year:
+        while track_date.year != prev_track_year:
             while month_range:
                 month_song_counter[f"{month_range[0] - int(all_songs_sr_analysis)}/{prev_track_year}"] = 0
                 month_range.pop(0)
-            prev_track_year = track_date.year
+            prev_track_year += 1
+            month_range = list(range(1, 13))
+        prev_track_year = track_date.year
         month_range = list(range(track_date.month, 13)) if not month_range else month_range
         while track_date.month > month_range[0]:
             month_song_counter[f"{month_range[0] - int(all_songs_sr_analysis)}/{track_date.year}"] = 0

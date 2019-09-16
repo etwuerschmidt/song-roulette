@@ -69,7 +69,8 @@ class SpotifyClient():
         """Returns the filtered track information of a given playlist name"""
         fields = self.fields_filter if fields is None else fields
         pid = self.get_playlist_id(playlist_name)
-        return self.max_out_with_offset(self.client.user_playlist_tracks, user=self.user_id, playlist_id=pid, fields=fields)
+        tracks = self.max_out_with_offset(self.client.user_playlist_tracks, user=self.user_id, playlist_id=pid, fields=fields)
+        return sorted(tracks, key = lambda track: track['added_at']) if 'added_at' in fields else tracks
 
     def get_playlist_url(self, playlist_name):
         """Returns a playlist URL for a given playlist name"""

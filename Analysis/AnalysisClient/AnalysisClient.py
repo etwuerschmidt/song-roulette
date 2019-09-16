@@ -1,4 +1,5 @@
 import datetime
+from datetime import date
 import os
 import pandas as pd
 import plotly.express as px
@@ -85,12 +86,26 @@ def track_count_per_month(playlist_items, all_songs_sr_analysis=False):
     """Returns the amount of songs added to a playlist for each month"""
     """Full playlist is passed in"""
     month_song_counter = {}
+    month_range = []
+    eval_playlist_year = None
+    prev_track_year = None
+    curr_year = date.today().year
     for track in playlist_items:
         track_date = datetime.datetime.strptime(track['added_at'], '%Y-%m-%dT%H:%M:%SZ')
+        if track_date.year != prev_track_year:
+            while month_range:
+                month_song_counter[f"{month_range[0] - int(all_songs_sr_analysis)}/{prev_track_year}"] = 0
+                month_range.pop(0)
+            prev_track_year = track_date.year
+        month_range = list(range(track_date.month, 13)) if not month_range else month_range
+        while track_date.month > month_range[0]:
+            month_song_counter[f"{month_range[0] - int(all_songs_sr_analysis)}/{track_date.year}"] = 0
+            month_range.pop(0)
         if f"{track_date.month - int(all_songs_sr_analysis)}/{track_date.year}" in month_song_counter:
             month_song_counter[f"{track_date.month - int(all_songs_sr_analysis)}/{track_date.year}"] += 1
         else:
             month_song_counter[f"{track_date.month - int(all_songs_sr_analysis)}/{track_date.year}"] = 1
+            month_range.remove(track_date.month)
     return month_song_counter
 
 def track_count_per_user(playlist_items):

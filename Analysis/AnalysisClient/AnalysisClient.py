@@ -67,11 +67,11 @@ def track_count_per_day(playlist_items, all_songs_sr_analysis=False):
     """Returns the amount of songs added to a playlist for each day of a month"""
     """One month of a playlist is passed in"""
     day_song_counter = {}
-    days_in_curr_month = None
+    days_in_curr_month = []
     for track in playlist_items:
         track_date = datetime.datetime.strptime(track['added_at'], '%Y-%m-%dT%H:%M:%SZ')
         days_in_curr_month = list(range(1,(datetime.date(track_date.year, track_date.month, 1) \
-            - datetime.date(track_date.year, track_date.month - 1, 1)).days + 1)) if days_in_curr_month is None else days_in_curr_month
+            - datetime.date(track_date.year, track_date.month - 1, 1)).days + 1)) if not days_in_curr_month else days_in_curr_month
         while track_date.day > days_in_curr_month[0]:
             day_song_counter[f"{track_date.month - int(all_songs_sr_analysis)}/{days_in_curr_month[0]}"] = 0
             days_in_curr_month.pop(0)

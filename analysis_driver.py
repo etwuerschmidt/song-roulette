@@ -22,7 +22,7 @@ graph_draw = Plotter(display=True)
 # month_count = AnalysisClient.AnalysisClient.track_count_per_month(all_tracks, sp_client.sr_analysis, pad_to_today=True)
 # month_plot = graph_draw.line_graph(month_count.keys(), month_count.values())
 
-day_count = AnalysisClient.AnalysisClient.track_count_per_day(all_tracks, sp_client.sr_analysis, pad_to_month_end=True)
+day_count = AnalysisClient.AnalysisClient.track_count_per_day(all_tracks, pad_to_month_end=True)
 day_plot = graph_draw.line_graph(day_count.keys(), day_count.values())
 
 # user_count = AnalysisClient.AnalysisClient.track_count_per_user(all_tracks)

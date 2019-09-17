@@ -74,7 +74,7 @@ def avg_audio_features(song_features):
         avg_features[key] = value / len(song_features)
     return avg_features
 
-def track_count_per_day(playlist_items, all_songs_sr_analysis=False, pad_to_today=False, pad_to_month_end=False):
+def track_count_per_day(playlist_items, pad_to_today=False, pad_to_month_end=False):
     """Returns the amount of songs added to a playlist for each day of a month"""
     """One month of a playlist is passed in"""
     prev_track_date = datetime.datetime.strptime(playlist_items[0]['added_at'], '%Y-%m-%dT%H:%M:%SZ')
@@ -83,12 +83,12 @@ def track_count_per_day(playlist_items, all_songs_sr_analysis=False, pad_to_toda
     for track in playlist_items:
         track_date = datetime.datetime.strptime(track['added_at'], '%Y-%m-%dT%H:%M:%SZ')
         while track_date.day > days_in_curr_month[0]:
-            day_song_counter[f"{track_date.month - int(all_songs_sr_analysis)}/{days_in_curr_month[0]}"] = 0
+            day_song_counter[f"{track_date.month}/{days_in_curr_month[0]}"] = 0
             days_in_curr_month.pop(0)
-        if f"{track_date.month - int(all_songs_sr_analysis)}/{track_date.day}" in day_song_counter:
-            day_song_counter[f"{track_date.month - int(all_songs_sr_analysis)}/{track_date.day}"] += 1
+        if f"{track_date.month}/{track_date.day}" in day_song_counter:
+            day_song_counter[f"{track_date.month}/{track_date.day}"] += 1
         else: 
-            day_song_counter [f"{track_date.month - int(all_songs_sr_analysis)}/{track_date.day}"] = 1
+            day_song_counter [f"{track_date.month}/{track_date.day}"] = 1
             days_in_curr_month.remove(track_date.day)
         prev_track_date = track_date
     if pad_to_today or pad_to_month_end:

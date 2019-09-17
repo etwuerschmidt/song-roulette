@@ -37,18 +37,19 @@ class SpotifyClient():
         """Returns audio features given a list of songs. Audio features call does not support offsetting, so list slicing is required."""
         return self.max_out_with_slice(self.client.audio_features, songs)
 
-    def get_month_tracks(self, playlist_name, month, fields=None):
+    def get_month_tracks(self, playlist_name, month, year, fields=None):
         """Returns the filtered track information of a given playlist name for tracks added in a specific month"""
-        if type(month) is str:
+        if month not in list(range(1, 13)):
             print("Please provide month as an integer")
             exit()
-        if "added_at" not in fields:
+        if fields is not None and "added_at" not in fields:
             print("Please include added_at filter in fields")
             exit()
         filtered_tracks = []
         tracks = self.get_playlist_tracks(playlist_name, fields=fields)
         for track in tracks:
-            if datetime.datetime.strptime(track['added_at'], '%Y-%m-%dT%H:%M:%SZ').month - int(self.all_songs_sr_analysis) == month:
+            track_date = datetime.datetime.strptime(track['added_at'], '%Y-%m-%dT%H:%M:%SZ')
+            if track_date.month - int(self.all_songs_sr_analysis) == month and track_date.year == year:
                 filtered_tracks.append(track)
         return filtered_tracks
 

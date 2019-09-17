@@ -1,3 +1,4 @@
+from calendar import monthrange
 import datetime
 from datetime import date
 import os
@@ -17,7 +18,8 @@ class Plotter():
         fig = go.Figure([go.Bar(x=list(x), y=list(y))])
         fig.update_layout(title=title,
                           xaxis_title=xaxis,
-                          yaxis_title=yaxis)
+                          yaxis_title=yaxis,
+                          yaxis={'tickformat': ',d'})
         self.graph_view_save(fig)
 
     def graph_view_save(self, fig):
@@ -34,7 +36,8 @@ class Plotter():
         fig = go.Figure(data=go.Scatter(x=list(x), y=list(y)))
         fig.update_layout(title=title,
                           xaxis_title=xaxis,
-                          yaxis_title=yaxis)
+                          yaxis_title=yaxis,
+                          yaxis={'tickformat': ',d'})
         self.graph_view_save(fig)
 
     def radar_graph(self, data, title='radar_graph'):
@@ -63,44 +66,51 @@ def avg_audio_features(song_features):
         avg_features[key] = value / len(song_features)
     return avg_features
 
-def track_count_per_day(playlist_items, all_songs_sr_analysis=False):
+def track_count_per_day(playlist_items, all_songs_sr_analysis=False, pad_to_today=False, pad_to_month_end=False):
     """Returns the amount of songs added to a playlist for each day of a month"""
     """One month of a playlist is passed in"""
+    prev_track_date = datetime.datetime.strptime(playlist_items[0]['added_at'], '%Y-%m-%dT%H:%M:%SZ')
     day_song_counter = {}
-    days_in_curr_month = []
+    days_in_curr_month = list(range(1, monthrange(prev_track_date.year, prev_track_date.month)[1] + 1))
     for track in playlist_items:
         track_date = datetime.datetime.strptime(track['added_at'], '%Y-%m-%dT%H:%M:%SZ')
-        days_in_curr_month = list(range(1,(datetime.date(track_date.year, track_date.month, 1) \
-            - datetime.date(track_date.year, track_date.month - 1, 1)).days + 1)) if not days_in_curr_month else days_in_curr_month
         while track_date.day > days_in_curr_month[0]:
             day_song_counter[f"{track_date.month - int(all_songs_sr_analysis)}/{days_in_curr_month[0]}"] = 0
             days_in_curr_month.pop(0)
         if f"{track_date.month - int(all_songs_sr_analysis)}/{track_date.day}" in day_song_counter:
             day_song_counter[f"{track_date.month - int(all_songs_sr_analysis)}/{track_date.day}"] += 1
-        else:
+        else: 
             day_song_counter [f"{track_date.month - int(all_songs_sr_analysis)}/{track_date.day}"] = 1
             days_in_curr_month.remove(track_date.day)
+        prev_track_date = track_date
+    if pad_to_today or pad_to_month_end:
+        day_range = 0
+        if pad_to_today:
+            day_range = list(range(prev_track_date.day+1, date.today().day+1))
+        elif pad_to_month_end:
+            day_range = list(range(prev_track_date.day+1, monthrange(prev_track_date.year, prev_track_date.month)[1] + 1))
+        while day_range:
+            day_song_counter[f"{prev_track_date.month}/{day_range[0]}"] = 0
+            day_range.pop(0)
     return day_song_counter
 
-def track_count_per_month(playlist_items, all_songs_sr_analysis=False):
+def track_count_per_month(playlist_items, all_songs_sr_analysis=False, pad_to_today=False):
     """Returns the amount of songs added to a playlist for each month"""
     """Full playlist is passed in"""
+    prev_track_date = datetime.datetime.strptime(playlist_items[0]['added_at'], '%Y-%m-%dT%H:%M:%SZ')
     month_song_counter = {}
-    month_range = []
-    eval_playlist_year = None
-    prev_track_year = datetime.datetime.strptime(playlist_items[0]['added_at'], '%Y-%m-%dT%H:%M:%SZ').year
-    curr_year = date.today().year
+    month_range = list(range(prev_track_date.month, 13))
     for track in playlist_items:
         track_date = datetime.datetime.strptime(track['added_at'], '%Y-%m-%dT%H:%M:%SZ')
+        prev_track_year = prev_track_date.year
         while track_date.year != prev_track_year:
             while month_range:
                 month_song_counter[f"{month_range[0] - int(all_songs_sr_analysis)}/{prev_track_year}"] = 0
                 month_range.pop(0)
             prev_track_year += 1
             month_range = list(range(1, 13))
-        prev_track_year = track_date.year
-        month_range = list(range(track_date.month, 13)) if not month_range else month_range
-        while track_date.month > month_range[0]:
+        prev_track_date = track_date
+        while len(month_range) > 0 and track_date.month > month_range[0]:
             month_song_counter[f"{month_range[0] - int(all_songs_sr_analysis)}/{track_date.year}"] = 0
             month_range.pop(0)
         if f"{track_date.month - int(all_songs_sr_analysis)}/{track_date.year}" in month_song_counter:
@@ -108,6 +118,20 @@ def track_count_per_month(playlist_items, all_songs_sr_analysis=False):
         else:
             month_song_counter[f"{track_date.month - int(all_songs_sr_analysis)}/{track_date.year}"] = 1
             month_range.remove(track_date.month)
+    if pad_to_today:
+        year_pad = False
+        prev_track_year = prev_track_date.year
+        while date.today().year != prev_track_year:
+            year_pad = True
+            while month_range:
+                month_song_counter[f"{month_range[0] - int(all_songs_sr_analysis)}/{prev_track_year}"] = 0
+                month_range.pop(0)
+            prev_track_year += 1
+            month_range = list(range(1, 13))
+        month_range = list(range(prev_track_date.month+1, date.today().month+1)) if not year_pad else list(range(1, date.today().month+1))
+        while month_range:
+            month_song_counter[f"{month_range[0]}/{date.today().year}"] = 0
+            month_range.pop(0)
     return month_song_counter
 
 def track_count_per_user(playlist_items):

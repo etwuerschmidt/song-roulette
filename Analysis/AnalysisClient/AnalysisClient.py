@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go 
+import subprocess
 
 class Plotter():
     """Class to plot a variety of graphs"""
@@ -11,6 +12,13 @@ class Plotter():
     def __init__(self, display=False, save=False):
         self.display = display
         self.save = save
+        if self.save:
+            try:
+                subprocess.run(["orca", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+            except:
+                print("Orca is not installed or is not in PATH! Saving images is not supported. Setting Plotter to display.")
+                self.save = False
+                self.display = True
 
     def bar_graph(self, x, y, xaxis=None, yaxis=None, title='bar_graph'):
         """Create a bar graph with provided information"""

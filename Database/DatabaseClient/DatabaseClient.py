@@ -10,6 +10,7 @@ class DatabaseClient:
         """Initializes an object with all necessary items to create a Database Client"""
         self.connection = None
         self.cursor = None
+        self.filename = None
         self.db_url = os.environ['DATABASE_URL']
 
     def close(self):
@@ -35,6 +36,13 @@ class DatabaseClient:
         """Executes and returns results from provided query"""
         self.cursor.execute(query)
         return self.cursor.fetchall()
+
+    def file_write(self, data, filename=None):
+        """Writes data provided to either specified filename or instance filename"""
+        if filename and not self.filename:
+            self.filename = filename
+        with open(self.filename) as file:
+            file.write(data, "a+")
 
     def update_schema(self, schema):
         """Set database schema"""

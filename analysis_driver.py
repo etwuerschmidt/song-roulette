@@ -11,7 +11,7 @@ sp_client.sr_analysis = False
 sl_client = SlackClient()
 sl_client.connect()
 
-all_tracks = sp_client.get_playlist_tracks("Song Roulette: September")
+all_tracks = sp_client.get_playlist_tracks("TEST August")
 track_uris = sp_client.filter_tracks(all_tracks, 'uri')
 audio_features = sp_client.get_audio_features(track_uris)
 

@@ -82,7 +82,7 @@ def track_count_per_day(playlist_items, pad_to_today=False, pad_to_month_end=Fal
     days_in_curr_month = list(range(1, monthrange(prev_track_date.year, prev_track_date.month)[1] + 1))
     for track in playlist_items:
         track_date = datetime.datetime.strptime(track['added_at'], '%Y-%m-%dT%H:%M:%SZ')
-        while track_date.day > days_in_curr_month[0]:
+        while len(days_in_curr_month) > 0 and track_date.day > days_in_curr_month[0]:
             day_song_counter[f"{track_date.month}/{days_in_curr_month[0]}"] = 0
             days_in_curr_month.pop(0)
         if f"{track_date.month}/{track_date.day}" in day_song_counter:

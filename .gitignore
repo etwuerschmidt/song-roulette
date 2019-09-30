@@ -1,5 +1,6 @@
 #Directories
 **/build
+**/data
 **/dist
 **/images
 **/__pycache__

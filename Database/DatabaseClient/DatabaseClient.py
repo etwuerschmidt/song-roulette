@@ -39,10 +39,12 @@ class DatabaseClient:
 
     def file_write(self, data, filename=None):
         """Writes data provided to either specified filename or instance filename"""
+        if not os.path.exists("data"):
+            os.mkdir("data")
         if filename and not self.filename:
-            self.filename = filename
-        with open(self.filename) as file:
-            file.write(data, "a+")
+            self.filename = f"data/{filename}.txt"
+        with open(self.filename, "a+") as file:
+            file.write(str(data) + "\n")
 
     def update_schema(self, schema):
         """Set database schema"""

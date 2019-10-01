@@ -22,9 +22,9 @@ def analysis(old_playlist_name, month_tracks):
         slack_usernames += f"<{user_info[user][0]['slack_id']}> "
     user_graph_title = f"{old_playlist_name} Tracks Added per User"
     graph_draw.bar_graph(user_count_by_name.keys(), user_count_by_name.values(), title=user_graph_title, xaxis='User', yaxis='Songs Added')
-    db_client.file_write(user_count, f"{old_playlist_name} data".replace(" ", "_"))
+    db_client.file_write(user_count, f"{old_playlist_name} data".replace(" ", "_").replace(":", "_"))
 
-    day_count = AnalysisClient.track_count_per_day(month_tracks)
+    day_count = AnalysisClient.track_count_per_day(month_tracks, pad_to_month_end=True)
     day_graph_title = f"{old_playlist_name} Tracks Added by Day"
     graph_draw.line_graph(day_count.keys(), day_count.values(), title=day_graph_title, xaxis='Day of month', yaxis='Songs Added')
     db_client.file_write(day_count)
@@ -82,7 +82,7 @@ def main(args):
         reset_test_playlist(old_playlist_name, new_playlist_name, all_playlist_name)
     elif day_of_month == (day_of_month if test else live_run_day):
         month_tracks = sp_client.get_playlist_tracks(old_playlist_name)
-        db_client.file_write(month_tracks, f"{old_playlist_name} tracks".replace(" ", "_"))
+        db_client.file_write(month_tracks, f"{old_playlist_name} tracks".replace(" ", "_").replace(":", "_"))
         graph_titles, slack_usernames = analysis(old_playlist_name, month_tracks)
         
         reset_playlist(test, old_playlist_name, new_playlist_name, all_playlist_name)
@@ -98,9 +98,9 @@ def message_slack(channel_name, new_playlist_name, current_playlist_link, slack_
     sl_client.set_channel(channel_name)
     sl_client.post_message(f"{new_playlist_name} is now ready! Add songs here: {current_playlist_link}")
     sl_client.post_message(f"Thanks to everyone who contributed last month! {slack_usernames}")
-    sl_client.post_file(f"images/{kwargs.get('user')}.png".replace(" ", "_"), message="Here's how many songs everyone added.")
-    sl_client.post_file(f"images/{kwargs.get('features')}.png".replace(" ", "_"), message="Here's the playlist features for last month.")
-    sl_client.post_file(f"images/{kwargs.get('day')}.png".replace(" ", "_"), message="Here's how often songs were added throughout the month.")
+    sl_client.post_file(f"images/{kwargs.get('user')}.png".replace(" ", "_").replace(":", "_"), message="Here's how many songs everyone added.")
+    sl_client.post_file(f"images/{kwargs.get('features')}.png".replace(" ", "_").replace(":", "_"), message="Here's the playlist features for last month.")
+    sl_client.post_file(f"images/{kwargs.get('day')}.png".replace(" ", "_").replace(":", "_"), message="Here's how often songs were added throughout the month.")
 
 def reset_playlist(test, old_playlist_name, new_playlist_name, all_playlist_name):
     global sp_client

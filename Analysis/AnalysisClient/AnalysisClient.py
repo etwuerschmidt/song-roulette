@@ -40,7 +40,7 @@ class Plotter():
         if self.save:
             if not os.path.exists("images"):
                 os.mkdir("images")
-            image_name = fig.layout['title']['text'].replace(" ", "_")
+            image_name = fig.layout['title']['text'].replace(" ", "_").replace(":", "_")
             fig.write_image(f"images/{image_name}.png")
 
     def line_graph(self, x, y, xaxis=None, yaxis=None, title='line_graph'):

@@ -43,7 +43,7 @@ class DatabaseClient:
             os.mkdir("data")
         if filename:
             self.filename = f"data/{filename}.txt"
-        with open(self.filename, "a+") as file:
+        with open(self.filename, "a+", encoding='utf8') as file:
             file.write(str(data) + "\n")
 
     def update_schema(self, schema):

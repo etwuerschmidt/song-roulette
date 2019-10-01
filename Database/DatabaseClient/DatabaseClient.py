@@ -41,7 +41,7 @@ class DatabaseClient:
         """Writes data provided to either specified filename or instance filename"""
         if not os.path.exists("data"):
             os.mkdir("data")
-        if filename and not self.filename:
+        if filename:
             self.filename = f"data/{filename}.txt"
         with open(self.filename, "a+") as file:
             file.write(str(data) + "\n")

@@ -1,4 +1,5 @@
 from calendar import monthrange
+import collections
 import datetime
 from datetime import date
 import os
@@ -23,7 +24,10 @@ class Plotter():
 
     def bar_graph(self, x, y, xaxis=None, yaxis=None, title='bar_graph'):
         """Create a bar graph with provided information"""
-        fig = go.Figure([go.Bar(x=list(x), y=list(y))])
+        fig = go.Figure([go.Bar(x=list(x), 
+                                y=list(y),
+                                text=list(y),
+                                textposition='auto')])
         fig.update_layout(title=title,
                           xaxis_title=xaxis,
                           yaxis_title=yaxis,
@@ -150,6 +154,7 @@ def track_count_per_user(playlist_items):
             user_song_counter[track['added_by']['id']] += 1
         else:
             user_song_counter[track['added_by']['id']] = 1
+    user_song_counter = collections.OrderedDict(sorted(user_song_counter.items(), key=lambda item: item[1], reverse=True))
     return user_song_counter
 
 if __name__ == "__main__":

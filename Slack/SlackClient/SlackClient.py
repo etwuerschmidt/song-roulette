@@ -14,6 +14,10 @@ class SlackClient():
         """Authentication for Slack Client"""
         self.client = slack.WebClient(token=self.client_token)
 
+    def post_file(self, filename, message=None, channel=None):
+        """Posts specified file to either default or specified channel with specified comment"""
+        self.client.files_upload(channels=self.channel if not channel else channel, file=filename, initial_comment=f"Song Roulette Bot is posting on Eric's behalf: {message}")
+
     def post_message(self, message, channel=None):
         """Writes specified message to either default or specified channel"""
         self.client.chat_postMessage(channel=self.channel if not channel else channel, text=message)

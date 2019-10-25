@@ -4,11 +4,11 @@ import slack
 class SlackClient():
     """Class for handling all Slack messaging"""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """Initializes an object with all necessary items to create a Slack Client"""
         self.channel = '#sr-test'
         self.client = None
-        self.client_token = os.environ['SLACK_OAUTH_TOKEN']
+        self.client_token = kwargs.get('SLACK_OAUTH_TOKEN', os.environ['SLACK_OAUTH_TOKEN'])
 
     def connect(self):
         """Authentication for Slack Client"""

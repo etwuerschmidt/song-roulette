@@ -7,22 +7,19 @@ import spotipy.util as util
 class SpotifyClient():
     """Class for handling all Spotify API requests"""
 
-    def __init__(self, user_id=None, username=None):
+    def __init__(self, user_id=None, username=None, **kwargs):
         """Initializes an object with all necessary items to create a Spotify Client"""
         self.client = None
-        self.client_id = os.environ['SPOTIPY_CLIENT_ID']
-        self.client_secret = os.environ['SPOTIPY_CLIENT_SECRET']
+        self.client_id = kwargs.get('SPOTIPY_CLIENT_ID', os.environ['SPOTIPY_CLIENT_ID'])
+        self.client_secret = kwargs.get('SPOTIPY_CLIENT_SECRET', os.environ['SPOTIPY_CLIENT_SECRET'])
+        self.redirect_uri = kwargs.get('SPOTIPY_REDIRECT_URI', os.environ['SPOTIPY_REDIRECT_URI'])
         self.fields_filter = 'items(added_at,added_by,track(name,popularity,uri))'
-        self.redirect_uri = os.environ['SPOTIPY_REDIRECT_URI']
         self.scope = "playlist-read-collaborative playlist-read-private playlist-modify-private playlist-modify-public"
         # all_songs_sr_analysis should be taken into account for Song Roulette: All, since songs for a particular month are added on the first day
         # of the following month
         self.all_songs_sr_analysis = False
         self.user_id = user_id
         self.username = username
-        if self.user_id == None or self.username == None:
-            print("Check user ID and username in SpotifyClient!")
-            exit()
 
     def connect(self):
         """Authentication for Spotify Client"""

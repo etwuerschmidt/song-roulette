@@ -10,7 +10,6 @@ from SpotifyClient.SpotifyClient import SpotifyClient
 
 def analysis(old_playlist_name, month_tracks):
     print("Running analysis...")
-    global db_client, sp_client
     with open('users.json', 'r') as json_file:
         user_info = json.load(json_file)
     graph_draw = AnalysisClient.Plotter(save=True)
@@ -18,8 +17,12 @@ def analysis(old_playlist_name, month_tracks):
     user_count_by_name = {}
     slack_usernames = ""
     for user, count in user_count.items():
-        user_count_by_name[user_info[user][0]['name']] = count
-        slack_usernames += f"<{user_info[user][0]['slack_id']}> "
+        if user not in user_info:
+            user_count_by_name[user] = count
+            slack_usernames += f"User {user} "
+        else:
+            user_count_by_name[user_info[user]['name']] = count
+            slack_usernames += f"<{user_info[user]['slack_id']}> "
     user_graph_title = f"{old_playlist_name} Tracks Added per User"
     graph_draw.bar_graph(user_count_by_name.keys(), user_count_by_name.values(), title=user_graph_title, xaxis='User', yaxis='Songs Added')
     db_client.file_write(user_count, f"{old_playlist_name} data".replace(" ", "_").replace(":", "_"))
@@ -42,15 +45,10 @@ def analysis(old_playlist_name, month_tracks):
 
     return (graph_titles, slack_usernames)
 
-def connect():
+def connect(*args):
     print("Connecting clients...")
-    global db_client, sl_client, sp_client
-    db_client = DatabaseClient()
-    sl_client = SlackClient()
-    sp_client = SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt')
-    db_client.connect()
-    sl_client.connect()
-    sp_client.connect()
+    for client in args:
+        client.connect()
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Refresh monthly Spotify Playlist.')
@@ -61,7 +59,6 @@ def parse_args():
 
 def main(args):
     """Refreshes playlist and performs all optional analysis"""
-    global db_client, sp_client
     test = args.test or args.reset_test
     live_run_day = args.live
     day_of_month = date.today().day
@@ -75,8 +72,6 @@ def main(args):
     old_playlist_name = f"{playlist_prefix}{last_month_name}"
     all_playlist_name = f"{playlist_prefix}All Songs"
     new_playlist_name = f"{playlist_prefix}{current_month_name}"
-
-    connect()
 
     if args.reset_test:
         reset_test_playlist(old_playlist_name, new_playlist_name, all_playlist_name)
@@ -103,7 +98,6 @@ def message_slack(channel_name, new_playlist_name, current_playlist_link, slack_
     sl_client.post_file(f"images/{kwargs.get('day')}.png".replace(" ", "_").replace(":", "_"), message="Here's how often songs were added throughout the month.")
 
 def reset_playlist(test, old_playlist_name, new_playlist_name, all_playlist_name):
-    global sp_client
     run_type = 'TEST' if test else 'LIVE'
     if input(f"You've specified a {run_type} run. {old_playlist_name} will be moved to {all_playlist_name}. Enter Y to continue: ") != 'Y':
         print("Exiting...")
@@ -112,7 +106,6 @@ def reset_playlist(test, old_playlist_name, new_playlist_name, all_playlist_name
     sp_client.rename_playlist(old_playlist_name, new_playlist_name)
 
 def reset_test_playlist(old_playlist_name, new_playlist_name, all_playlist_name):
-    global sp_client
     print("Resetting test playlist...")
     sp_client.move_tracks(all_playlist_name, new_playlist_name)
     sp_client.rename_playlist(new_playlist_name, old_playlist_name)
@@ -120,8 +113,12 @@ def reset_test_playlist(old_playlist_name, new_playlist_name, all_playlist_name)
 
 if __name__ == "__main__":
     cli_args = parse_args()
-    db_client = None
-    sp_client = None
-    sl_client = None
+    with open('secrets.json', 'r') as json_secret:
+        secret_info = json.load(json_secret)
+    db_client = DatabaseClient(DATABASE_URL=secret_info['DATABASE_URL'])
+    sl_client = SlackClient(SLACK_OAUTH_TOKEN=secret_info['SLACK_OAUTH_TOKEN'])
+    sp_client = SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=secret_info['SPOTIPY_CLIENT_ID'], 
+                              SPOTIPY_CLIENT_SECRET=secret_info['SPOTIPY_CLIENT_SECRET'], SPOTIPY_REDIRECT_URI=secret_info['SPOTIPY_REDIRECT_URI'])
+    connect(db_client, sp_client, sl_client)
     main(cli_args)
     exit()

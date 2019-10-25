@@ -1,4 +1,5 @@
 # Song-Roulette
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 Refresh monthly collaborative playlist and retrieve information for analysis using Spotipy. Alert users in Slack of updates / respond to inquries.
 
 To get started, run

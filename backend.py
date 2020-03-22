@@ -103,15 +103,15 @@ def set_playlist_names(request):
     return (request_info, old_playlist_name, all_playlist_name, new_playlist_name)
 
 def valid_request(request):
-    valid_token = request.form['token'] == token
-    team_id = request.form['team_id'] == team
+    valid_token = request.form['token'] == os.environ['SLACK_REQUEST_TOKEN']
+    team_id = request.form['team_id'] == os.environ['SLACK_TEAM_ID']
     if not (valid_token and team_id):
         abort(400)
 
 def valid_user(request):
-    if not request.form['user_id'] == admin:
+    if not request.form['user_id'] == os.environ['SLACK_BOT_ADMIN']:
         return jsonify(
-            text=f"Sorry, only <@{admin}> has access to this command right now."
+            text=f"Sorry, only <@{os.environ['SLACK_BOT_ADMIN']}> has access to this command right now."
         )
 
 @app.route('/refresh', methods=['POST'])
@@ -161,8 +161,5 @@ if __name__ == "__main__":
     sp_client = SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=os.environ['SPOTIPY_CLIENT_ID'], 
                               SPOTIPY_CLIENT_SECRET=os.environ['SPOTIPY_CLIENT_SECRET'], SPOTIPY_REDIRECT_URI=os.environ['SPOTIPY_REDIRECT_URI'])
     connect_clients(sp_client)
-    token = os.environ['SLACK_REQUEST_TOKEN']
-    team = os.environ['SLACK_TEAM_ID']
-    admin = os.environ['SLACK_BOT_ADMIN']
     graph_draw = AnalysisClient.Plotter(save=True)
     run_server()

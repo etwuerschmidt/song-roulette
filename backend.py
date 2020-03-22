@@ -51,15 +51,15 @@ def run_server():
     app.run()
 
 def valid_request(request):
-    valid_token = request.form['token'] == "OniQDbwoJu7mTGTX8Ub7LeCm"
-    team_id = request.form['team_id'] == "T8K6M2S2D"
+    valid_token = request.form['token'] == token
+    team_id = request.form['team_id'] == team
     if not (valid_token and team_id):
         abort(400)
 
 def valid_user(request):
-    if not request.form['user_id'] == 'U8WRDEPRT':
+    if not request.form['user_id'] == admin:
         return jsonify(
-            text=f"Sorry, only <@U8WRDEPRT> has access to this slash command right now."
+            text=f"Sorry, only <@{admin}> has access to this slash command right now."
         )
 
 @app.route('/refresh', methods=['POST'])
@@ -95,4 +95,7 @@ if __name__ == "__main__":
     sp_client = SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=secret_info['SPOTIPY_CLIENT_ID'], 
                               SPOTIPY_CLIENT_SECRET=secret_info['SPOTIPY_CLIENT_SECRET'], SPOTIPY_REDIRECT_URI=secret_info['SPOTIPY_REDIRECT_URI'])
     connect_clients(db_client, sp_client, sl_client)
+    token = secret_info['SLACK_REQUEST_TOKEN']
+    team = secret_info['SLACK_TEAM_ID']
+    admin = secret_info['SLACK_BOT_ADMIN']
     run_server()

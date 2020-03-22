@@ -11,15 +11,16 @@ import requests
 from spotify.client import SpotifyClient
 from threading import Thread
 
-sp_client = SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=os.environ['SPOTIPY_CLIENT_ID'], 
-                            SPOTIPY_CLIENT_SECRET=os.environ['SPOTIPY_CLIENT_SECRET'], SPOTIPY_REDIRECT_URI=os.environ['SPOTIPY_REDIRECT_URI'])
-graph_draw = AnalysisClient.Plotter(save=True)
-app = Flask(__name__)
-
 def connect_clients(*args):
     print("Connecting clients...")
     for client in args:
         client.connect()
+
+sp_client = SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=os.environ['SPOTIPY_CLIENT_ID'], 
+                            SPOTIPY_CLIENT_SECRET=os.environ['SPOTIPY_CLIENT_SECRET'], SPOTIPY_REDIRECT_URI=os.environ['SPOTIPY_REDIRECT_URI'])
+connect_clients(sp_client)
+graph_draw = AnalysisClient.Plotter(save=True)
+app = Flask(__name__)
 
 def all_analysis(response_url, playlist_name):
     user_analysis(response_url, playlist_name)
@@ -159,5 +160,4 @@ def analysis():
 if __name__ == "__main__":
     # db_client = DatabaseClient(DATABASE_URL=secret_info['DATABASE_URL'])
     # sl_client = SlackClient(SLACK_OAUTH_TOKEN=secret_info['SLACK_OAUTH_TOKEN'])
-    connect_clients(sp_client)
     run_server()

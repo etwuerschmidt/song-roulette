@@ -23,11 +23,15 @@ def connect_clients(*args):
 #     g.sl_client.close()
 #     g.sp_client.close()
 
+def all_analysis(response_url):
+    user_analysis(response_url)
+    date_analysis(response_url)
+    properties_analysis(response_url)
+
 def user_analysis(response_url):
     month_tracks = sp_client.get_playlist_tracks("Song Roulette: March")
     with open('users.json', 'r') as json_file:
-        user_info = json.load(json_file)
-    graph_draw = AnalysisClient.Plotter(save=True)
+        user_info = json.load(json_file)    
     user_count = AnalysisClient.track_count_per_user(month_tracks)
     user_count_by_name = {}
     slack_usernames = ""
@@ -37,8 +41,8 @@ def user_analysis(response_url):
             slack_usernames += f"User {user} "
         else:
             user_count_by_name[user_info[user]['name']] = count
-            slack_usernames += f"<{user_info[user]['slack_id']}> "
-    user_graph_title = f"Song Roulette: March Tracks Added per User"
+            slack_usernames += f"<{user_info[user]['slack_id']}> \\n"
+    user_graph_title = f"{old_playlist_name} Tracks Added per User"
     graph_draw.bar_graph(user_count_by_name.keys(), user_count_by_name.values(), title=user_graph_title, xaxis='User', yaxis='Songs Added')
 
     data = {
@@ -47,8 +51,55 @@ def user_analysis(response_url):
     }
     requests.post(response_url, json=data)
 
+def date_analysis(response_url):
+    month_tracks = sp_client.get_playlist_tracks(old_playlist_name)
+    day_count = AnalysisClient.track_count_per_day(month_tracks, pad_to_month_end=True)
+    day_graph_title = f"{old_playlist_name} Tracks Added by Day"
+    graph_draw.line_graph(day_count.keys(), day_count.values(), title=day_graph_title, xaxis='Day of month', yaxis='Songs Added')
+
+    data = {
+        "response_type": "in_channel",
+        "text": ""
+    }
+    requests.post(response_url, json=data)
+
+def properties_analysis(response_url):
+    month_tracks = sp_client.get_playlist_tracks("Song Roulette: March")
+    track_uris = sp_client.filter_tracks(month_tracks, 'uri')
+    audio_features = sp_client.get_audio_features(track_uris)
+    avg_audio_features = AnalysisClient.avg_audio_features(audio_features)
+    features_graph_title = f"{old_playlist_name} Audio Features"
+    graph_draw.radar_graph(avg_audio_features, title=features_graph_title)
+    
+    data = {
+        "response_type": "in_channel",
+        "text": ""
+    }
+    requests.post(response_url, json=data)
+
+
+    # graph_titles = {'user': user_graph_title, 
+    #                 'day': day_graph_title,
+    #                 'features': features_graph_title}
+
 def run_server():
     app.run()
+
+def set_playlist_names(request):
+    test = False
+    if "test" in request.form['text']:
+        test = True
+        request.form['text'] = request.form['text'].replace('test', '')
+
+    current_month_name = date.today().strftime("%B")
+    last_month_name = (date.today() - (timedelta(weeks=5)))
+    playlist_prefix = "TEST " if test else "Song Roulette: "
+    channel_name = "#sr-test" if test else "#dank-tunes"
+    current_playlist_link = None
+
+    old_playlist_name = f"{playlist_prefix}{last_month_name}"
+    all_playlist_name = f"{playlist_prefix}All Songs"
+    new_playlist_name = f"{playlist_prefix}{current_month_name}"
 
 def valid_request(request):
     valid_token = request.form['token'] == token
@@ -66,6 +117,7 @@ def valid_user(request):
 def refresh():
     valid_request(request)
     valid_user(request)
+    set_playlist_names(request)
     return jsonify(
         response_type="in_channel",
         text="You made a refresh request!"
@@ -75,16 +127,30 @@ def refresh():
 def analysis():
     valid_request(request)
     valid_user(request)
+    set_playlist_names(request)
 
     analysis_type = request.form['text']
-
     if analysis_type == "users":
         worker_thread = Thread(target=user_analysis, args=(request.form['response_url'], ))
         worker_thread.start()
+    elif analysis_type == "dates":
+        worker_thread = Thread(target=date_analysis, args=(request.form['response_url'], ))
+        worker_thread.start()
+    elif analysis_type == "properties":
+        worker_thread = Thread(target=properties_analysis, args=(request.form['response_url'], ))
+        worker_thread.start()
+    elif analysis_type == "all":
+        worker_thread = Thread(target=all_analysis, args=(request.form['response_url'], ))
+        worker_thread.start()
+    else:
+        return jsonify(
+            response_type="in_channel",
+            text=f"{analysis_type} is not supported with /analysis. Please use 'all', 'users', 'dates', or 'properties'"
+        )
 
     return jsonify(
         response_type="in_channel",
-        text="Processing your analysis request for users now - this may take a little bit"
+        text=f"Processing your analysis request for {analysis_type} now - this may take a little bit"
     )
 
 if __name__ == "__main__":
@@ -98,4 +164,9 @@ if __name__ == "__main__":
     token = secret_info['SLACK_REQUEST_TOKEN']
     team = secret_info['SLACK_TEAM_ID']
     admin = secret_info['SLACK_BOT_ADMIN']
+    graph_draw = AnalysisClient.Plotter(save=True)
+
+    old_playlist_name = ""
+    all_playlist_name = ""
+    new_playlist_name = ""
     run_server()

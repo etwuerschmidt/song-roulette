@@ -6,6 +6,7 @@ from datetime import date, timedelta
 from flask import abort, Flask, jsonify, request
 import json
 # from messaging.client import SlackClient
+import os
 import requests
 from spotify.client import SpotifyClient
 from threading import Thread
@@ -165,4 +166,3 @@ if __name__ == "__main__":
     admin = os.environ['SLACK_BOT_ADMIN']
     graph_draw = AnalysisClient.Plotter(save=True)
     run_server()
-    os.environ

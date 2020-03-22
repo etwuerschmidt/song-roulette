@@ -157,11 +157,12 @@ if __name__ == "__main__":
         secret_info = json.load(json_secret)    
     # db_client = DatabaseClient(DATABASE_URL=secret_info['DATABASE_URL'])
     # sl_client = SlackClient(SLACK_OAUTH_TOKEN=secret_info['SLACK_OAUTH_TOKEN'])
-    sp_client = SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=secret_info['SPOTIPY_CLIENT_ID'], 
-                              SPOTIPY_CLIENT_SECRET=secret_info['SPOTIPY_CLIENT_SECRET'], SPOTIPY_REDIRECT_URI=secret_info['SPOTIPY_REDIRECT_URI'])
+    sp_client = SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=os.environ['SPOTIPY_CLIENT_ID'], 
+                              SPOTIPY_CLIENT_SECRET=os.environ['SPOTIPY_CLIENT_SECRET'], SPOTIPY_REDIRECT_URI=os.environ['SPOTIPY_REDIRECT_URI'])
     connect_clients(sp_client)
-    token = secret_info['SLACK_REQUEST_TOKEN']
-    team = secret_info['SLACK_TEAM_ID']
-    admin = secret_info['SLACK_BOT_ADMIN']
+    token = os.environ['SLACK_REQUEST_TOKEN']
+    team = os.environ['SLACK_TEAM_ID']
+    admin = os.environ['SLACK_BOT_ADMIN']
     graph_draw = AnalysisClient.Plotter(save=True)
     run_server()
+    os.environ

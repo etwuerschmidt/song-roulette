@@ -2,10 +2,10 @@ import analysis.client as AnalysisClient
 import argparse
 import datetime
 from datetime import date, timedelta
-from database.client import DatabaseClient
+# from database.client import DatabaseClient
 from flask import abort, Flask, jsonify, request
 import json
-from messaging.client import SlackClient
+# from messaging.client import SlackClient
 import requests
 from spotify.client import SpotifyClient
 from threading import Thread
@@ -155,11 +155,11 @@ def analysis():
 if __name__ == "__main__":
     with open('secrets.json', 'r') as json_secret:
         secret_info = json.load(json_secret)    
-    db_client = DatabaseClient(DATABASE_URL=secret_info['DATABASE_URL'])
-    sl_client = SlackClient(SLACK_OAUTH_TOKEN=secret_info['SLACK_OAUTH_TOKEN'])
+    # db_client = DatabaseClient(DATABASE_URL=secret_info['DATABASE_URL'])
+    # sl_client = SlackClient(SLACK_OAUTH_TOKEN=secret_info['SLACK_OAUTH_TOKEN'])
     sp_client = SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=secret_info['SPOTIPY_CLIENT_ID'], 
                               SPOTIPY_CLIENT_SECRET=secret_info['SPOTIPY_CLIENT_SECRET'], SPOTIPY_REDIRECT_URI=secret_info['SPOTIPY_REDIRECT_URI'])
-    connect_clients(db_client, sp_client, sl_client)
+    connect_clients(sp_client)
     token = secret_info['SLACK_REQUEST_TOKEN']
     team = secret_info['SLACK_TEAM_ID']
     admin = secret_info['SLACK_BOT_ADMIN']

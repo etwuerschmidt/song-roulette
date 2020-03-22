@@ -1,12 +1,10 @@
 #Directories
-**/build
 **/data
 **/dist
 **/images
 **/__pycache__
+**/venv
 
 #File extensions
 *.json
 *.cache-Eric Wuerschmidt
-*.egg-info
-*.log

@@ -28,8 +28,13 @@ class SpotifyClient():
     def connect(self):
         """Authentication for Spotify Client"""
         token = util.prompt_for_user_token(self.username, self.scope, client_id=self.client_id,
-                                           client_secret=self.client_secret, redirect_uri=self.redirect_uri)
-        self.client = spotipy.Spotify(auth=token) if token else None
+                                           client_secret=self.client_secret, redirect_uri=self.redirect_uri) 
+        if token:
+            print("Successfully connected to Spotify") 
+            self.client = spotipy.Spotify(auth=token)
+        else:
+            print("Unable to connect to Spotify")
+            self.client = None
 
     def filter_tracks(self, playlist_items, field):
         """Return a list of playlist items with the given filter field"""

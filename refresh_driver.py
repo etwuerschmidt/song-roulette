@@ -1,12 +1,12 @@
 # Script for monthly refresh
-import AnalysisClient.AnalysisClient as AnalysisClient
+import analysis.client as AnalysisClient
 import argparse
 import datetime
 from datetime import date, timedelta
-from DatabaseClient.DatabaseClient import DatabaseClient
+from database.client.DatabaseClient import DatabaseClient
 import json
-from SlackClient.SlackClient import SlackClient
-from SpotifyClient.SpotifyClient import SpotifyClient
+from messaging.client import SlackClient
+from spotify.client import SpotifyClient
 
 def analysis(old_playlist_name, month_tracks):
     print("Running analysis...")

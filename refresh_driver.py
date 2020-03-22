@@ -3,7 +3,7 @@ import analysis.client as AnalysisClient
 import argparse
 import datetime
 from datetime import date, timedelta
-from database.client.DatabaseClient import DatabaseClient
+from database.client import DatabaseClient
 import json
 from messaging.client import SlackClient
 from spotify.client import SpotifyClient

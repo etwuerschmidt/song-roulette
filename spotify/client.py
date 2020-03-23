@@ -1,12 +1,17 @@
+import base64
 import datetime
-#import json
+import logging
 import os
+import requests
 import spotipy
 import spotipy.util as util
 
 
 class SpotifyClient():
     """Class for handling all Spotify API requests"""
+
+    refresh_url = 'https://accounts.spotify.com/api/token'
+    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
     def __init__(self, user_id=None, username=None, **kwargs):
         """Initializes an object with all necessary items to create a Spotify Client"""
@@ -15,8 +20,6 @@ class SpotifyClient():
             'SPOTIPY_CLIENT_ID', os.environ['SPOTIPY_CLIENT_ID'])
         self.client_secret = kwargs.get(
             'SPOTIPY_CLIENT_SECRET', os.environ['SPOTIPY_CLIENT_SECRET'])
-        self.redirect_uri = kwargs.get(
-            'SPOTIPY_REDIRECT_URI', os.environ['SPOTIPY_REDIRECT_URI'])
         self.fields_filter = 'items(added_at,added_by,track(name,popularity,uri))'
         self.scope = "playlist-read-collaborative playlist-read-private playlist-modify-private playlist-modify-public"
         # all_songs_sr_analysis should be taken into account for Song Roulette: All, since songs for a particular month are added on the first day
@@ -24,14 +27,16 @@ class SpotifyClient():
         self.all_songs_sr_analysis = False
         self.user_id = user_id
         self.username = username
+        self.access_token = None
+        self.refresh_token = os.environ['SPOTIFY_REFRESH_TOKEN']
+        self.last_refresh = 0
 
     def connect(self):
         """Authentication for Spotify Client
         token = util.prompt_for_user_token(self.username, self.scope, client_id=self.client_id,
                                            client_secret=self.client_secret, redirect_uri=self.redirect_uri) 
         """
-        token = os.environ['SPOTIFY_ACCESS_TOKEN']
-        self.client = spotipy.Spotify(auth=token)
+        self.refresh_access()
 
     def filter_tracks(self, playlist_items, field):
         """Return a list of playlist items with the given filter field"""
@@ -73,6 +78,7 @@ class SpotifyClient():
 
     def get_playlist_tracks(self, playlist_name, fields=None):
         """Returns the filtered track information of a given playlist name"""
+        logging.info(f"Fetching tracks for playlist {playlist_name}")
         fields = self.fields_filter if fields is None else fields
         pid = self.get_playlist_id(playlist_name)
         tracks = self.max_out_with_offset(
@@ -121,6 +127,20 @@ class SpotifyClient():
                                 tracks_to_move, user=self.user_id, playlist_id=to_id)
         self.max_out_with_slice(self.client.user_playlist_remove_all_occurrences_of_tracks,
                                 tracks_to_move, user=self.user_id, playlist_id=from_id)
+
+    def refresh_access(self):
+        if self.last_refresh == 0 or datetime.datetime.now() > self.last_refresh + datetime.timedelta(minutes=55):
+            logging.info('Invalid or nonexistant token, requesting new token now')
+            header_auth_info = self.client_id + ":" + self.client_secret
+            b64_header_auth_info = base64.urlsafe_b64encode(header_auth_info.encode()).decode()
+            headers = {'Authorization': f"Basic {b64_header_auth_info}", 'Content-Type': 'application/x-www-form-urlencoded'}
+            payload = {'grant_type': 'refresh_token', 'refresh_token': self.refresh_token}
+            refresh_request = requests.post(self.refresh_url, headers=headers, data=payload)
+            self.access_token = refresh_request.json()['access_token']
+            self.client = spotipy.Spotify(auth=self.access_token)
+            self.last_refresh = datetime.datetime.now()
+        else:
+            logging.info('Token is still valid')
 
     def rename_playlist(self, old_playlist_name, new_playlist_name):
         """Renames a playlist given old and new playlists"""

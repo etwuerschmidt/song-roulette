@@ -2,11 +2,14 @@ from calendar import monthrange
 import collections
 import datetime
 from datetime import date
+import logging
 import os
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go 
 import subprocess
+
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
 class Plotter():
     """Class to plot a variety of graphs"""
@@ -63,6 +66,7 @@ class Plotter():
 
 def avg_audio_features(song_features):
     """Returns the avg audio features for a given list of songs"""
+    logger.info("Calculating average audio features")
     avg_features = {"acousticness": 0,
                     "danceability": 0,
                     "instrumentalness": 0,
@@ -81,6 +85,7 @@ def avg_audio_features(song_features):
 def track_count_per_day(playlist_items, pad_to_today=False, pad_to_month_end=False):
     """Returns the amount of songs added to a playlist for each day of a month"""
     """One month of a playlist is passed in"""
+    logging.info("Calculating track count per day")
     prev_track_date = datetime.datetime.strptime(playlist_items[0]['added_at'], '%Y-%m-%dT%H:%M:%SZ')
     day_song_counter = {}
     days_in_curr_month = list(range(1, monthrange(prev_track_date.year, prev_track_date.month)[1] + 1))
@@ -109,6 +114,7 @@ def track_count_per_day(playlist_items, pad_to_today=False, pad_to_month_end=Fal
 def track_count_per_month(playlist_items, all_songs_sr_analysis=False, pad_to_today=False):
     """Returns the amount of songs added to a playlist for each month"""
     """Full playlist is passed in"""
+    logging.info("Calculating track count per month")
     prev_track_date = datetime.datetime.strptime(playlist_items[0]['added_at'], '%Y-%m-%dT%H:%M:%SZ')
     month_song_counter = {}
     month_range = list(range(prev_track_date.month, 13))
@@ -148,6 +154,7 @@ def track_count_per_month(playlist_items, all_songs_sr_analysis=False, pad_to_to
 
 def track_count_per_user(playlist_items):
     """Returns the amount of songs per user that were added to a playlist"""
+    logging.info("Calculating track count per user")
     user_song_counter = {}
     for track in playlist_items:
         if track['added_by']['id'] in user_song_counter:

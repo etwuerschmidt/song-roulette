@@ -6,10 +6,13 @@ from datetime import date, timedelta
 from flask import abort, g, Flask, jsonify, request
 import json
 # from messaging.client import SlackClient
+import logging
 import os
 import requests
 from spotify.client import SpotifyClient
 from threading import Thread
+
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
 def connect_clients(*args):
     print("Connecting clients...")
@@ -17,7 +20,7 @@ def connect_clients(*args):
         client.connect()
 
 sp_client = SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=os.environ['SPOTIPY_CLIENT_ID'], 
-                            SPOTIPY_CLIENT_SECRET=os.environ['SPOTIPY_CLIENT_SECRET'], SPOTIPY_REDIRECT_URI=os.environ['SPOTIPY_REDIRECT_URI'])
+                            SPOTIPY_CLIENT_SECRET=os.environ['SPOTIPY_CLIENT_SECRET'])
 connect_clients(sp_client)
 graph_draw = AnalysisClient.Plotter(save=True)
 app = Flask(__name__)
@@ -123,6 +126,7 @@ def refresh():
     valid_request(request)
     valid_user(request)
     request_type, old_playlist_name, all_playlist_name, new_playlist_name = set_playlist_names(request)
+    sp_client.refresh_access()
     return jsonify(
         response_type="in_channel",
         text="You made a refresh request!"
@@ -133,6 +137,7 @@ def analysis():
     valid_request(request)
     valid_user(request)
     analysis_type, old_playlist_name, all_playlist_name, new_playlist_name = set_playlist_names(request)
+    sp_client.refresh_access()
 
     if analysis_type == "users":
         worker_thread = Thread(target=user_analysis, args=(request.form['response_url'], new_playlist_name, ))

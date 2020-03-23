@@ -66,7 +66,7 @@ class Plotter():
 
 def avg_audio_features(song_features):
     """Returns the avg audio features for a given list of songs"""
-    logger.info("Calculating average audio features")
+    logging.info("Calculating average audio features")
     avg_features = {"acousticness": 0,
                     "danceability": 0,
                     "instrumentalness": 0,

@@ -10,6 +10,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import subprocess
+import uuid
 
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
@@ -43,7 +44,7 @@ class Plotter():
         return self.graph_view_save(fig)
 
     def graph_view_save(self, fig):
-        image_name = fig.layout['title']['text'].replace(
+        image_name = "{0} {1}".format(fig.layout['title']['text'], str(uuid.uuid1())).replace(
             " ", "_").replace(":", "_").replace("/", "_")
         url = None
         if self.display:

@@ -49,8 +49,7 @@ def user_analysis(response_url, playlist_name):
         else:
             user_count_by_name[user_info[user]['name']] = count
             slack_usernames += f"<{user_info[user]['slack_id']}> "
-    current_time = datetime.datetime.now().strftime(date_format).strip()
-    user_graph_title = f"{playlist_name} Tracks Added per User - {current_time}"
+    user_graph_title = f"{playlist_name} Tracks Added per User"
     image_url = graph_draw.bar_graph(user_count_by_name.keys(), user_count_by_name.values(
     ), title=user_graph_title, xaxis='User', yaxis='Songs Added')
 
@@ -64,13 +63,13 @@ def user_analysis(response_url, playlist_name):
 
     image_data = json.dumps({
         "response_type": "in_channel",
-        "text": f"Whoops! Looks like something went wrong with displaying the user data",
+        "text": f"User plot is here!",
         "blocks": [
             {
                 "type": "image",
                 "title": {
                     "type": "plain_text",
-                    "text": "Date frequency plot"
+                    "text": "User frequency plot"
                 },
                 "image_url": image_url[:-1] + '.png',
                 "alt_text": "This month's user data"
@@ -88,8 +87,7 @@ def date_analysis(response_url, playlist_name, today_pad=True):
     day_freq_message = ""
     for day, count in day_count.items():
         day_freq_message += f"{day}: {count} songs \n"
-    current_time = datetime.datetime.now().strftime(date_format).strip()
-    day_graph_title = f"{playlist_name} Tracks Added by Day - {current_time}"
+    day_graph_title = f"{playlist_name} Tracks Added by Day"
     image_url = graph_draw.line_graph(day_count.keys(), day_count.values(
     ), title=day_graph_title, xaxis='Day of month', yaxis='Songs Added')
 
@@ -103,7 +101,7 @@ def date_analysis(response_url, playlist_name, today_pad=True):
 
     image_data = json.dumps({
         "response_type": "in_channel",
-        "text": f"Whoops! Looks like something went wrong with displaying the date data",
+        "text": f"Date plot is here!",
         "blocks": [
             {
                 "type": "image",
@@ -129,8 +127,7 @@ def properties_analysis(response_url, playlist_name):
     features_message = ""
     for feature, quan in avg_audio_features.items():
         features_message += f"{feature}: {quan} \n"
-    current_time = datetime.datetime.now().strftime(date_format).strip()
-    features_graph_title = f"{playlist_name} Audio Features - {current_time}"
+    features_graph_title = f"{playlist_name} Audio Features"
     image_url = graph_draw.radar_graph(
         avg_audio_features, title=features_graph_title)
 
@@ -144,7 +141,7 @@ def properties_analysis(response_url, playlist_name):
 
     image_data = json.dumps({
         "response_type": "in_channel",
-        "text": f"Whoops! Looks like something went wrong with displaying the properties data",
+        "text": f"Properties plot is here!",
         "blocks": [
             {
                 "type": "image",

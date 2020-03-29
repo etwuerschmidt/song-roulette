@@ -1,1 +1,2 @@
-web: gunicorn backend:app
+release: python -m flask db upgrade
+web: gunicorn song_roulette:app

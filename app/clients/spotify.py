@@ -130,7 +130,7 @@ class SpotifyClient():
 
     def refresh_access(self):
         if self.last_refresh == 0 or datetime.datetime.now() > self.last_refresh + datetime.timedelta(minutes=55):
-            logging.info('Invalid or nonexistant token, requesting new token now')
+            logging.info('Invalid or nonexistant Spotify token, requesting new token now')
             header_auth_info = self.client_id + ":" + self.client_secret
             b64_header_auth_info = base64.urlsafe_b64encode(header_auth_info.encode()).decode()
             headers = {'Authorization': f"Basic {b64_header_auth_info}", 'Content-Type': 'application/x-www-form-urlencoded'}

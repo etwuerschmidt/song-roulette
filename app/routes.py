@@ -12,9 +12,6 @@ from threading import Thread
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 date_format = "%m/%d/%Y %I:%M:%S %p %Z"
 
-sp_client = sp.SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=app.config['SPOTIPY_CLIENT_ID'],
-                                  SPOTIPY_CLIENT_SECRET=app.config['SPOTIPY_CLIENT_SECRET'])
-sp_client.connect()
 graph_draw = an.Plotter()
 
 
@@ -25,6 +22,9 @@ def all_analysis(response_url, playlist_name):
 
 
 def user_analysis(response_url, playlist_name):
+    sp_client = sp.SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=app.config['SPOTIPY_CLIENT_ID'],
+                                    SPOTIPY_CLIENT_SECRET=app.config['SPOTIPY_CLIENT_SECRET'])
+    sp_client.connect()    
     month_tracks = sp_client.get_playlist_tracks(playlist_name)
     user_count = an.track_count_per_user(month_tracks)
     user_count_by_name = {}
@@ -69,6 +69,9 @@ def user_analysis(response_url, playlist_name):
 
 
 def date_analysis(response_url, playlist_name, today_pad=True):
+    sp_client = sp.SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=app.config['SPOTIPY_CLIENT_ID'],
+                                  SPOTIPY_CLIENT_SECRET=app.config['SPOTIPY_CLIENT_SECRET'])
+    sp_client.connect()
     month_tracks = sp_client.get_playlist_tracks(playlist_name)
     day_count = an.track_count_per_day(
         month_tracks, pad_to_today=today_pad)
@@ -108,6 +111,9 @@ def date_analysis(response_url, playlist_name, today_pad=True):
 
 
 def properties_analysis(response_url, playlist_name):
+    sp_client = sp.SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=app.config['SPOTIPY_CLIENT_ID'],
+                                  SPOTIPY_CLIENT_SECRET=app.config['SPOTIPY_CLIENT_SECRET'])
+    sp_client.connect()
     month_tracks = sp_client.get_playlist_tracks(playlist_name)
     track_uris = sp_client.filter_tracks(month_tracks, 'uri')
     audio_features = sp_client.get_audio_features(track_uris)
@@ -190,7 +196,9 @@ def refresh():
     valid_user(request)
     request_type, old_playlist_name, all_playlist_name, new_playlist_name = set_playlist_names(
         request)
-    sp_client.refresh_access()
+    sp_client = sp.SpotifyClient(user_id=1269825738, username='Eric Wuerschmidt', SPOTIPY_CLIENT_ID=app.config['SPOTIPY_CLIENT_ID'],
+                                    SPOTIPY_CLIENT_SECRET=app.config['SPOTIPY_CLIENT_SECRET'])
+    sp_client.connect()        
     return jsonify(
         response_type="in_channel",
         text="You made a refresh request!"
@@ -205,7 +213,6 @@ def analysis():
     valid_user(request)
     analysis_type, old_playlist_name, all_playlist_name, new_playlist_name = set_playlist_names(
         request)
-    sp_client.refresh_access()
 
     if analysis_type == "users":
         worker_thread = Thread(target=user_analysis, args=(

@@ -1,6 +1,9 @@
+
+import sys
+sys.path.append('..')
+from slackapp import app
 import base64
 import datetime
-import logging
 import os
 import requests
 import spotipy
@@ -11,7 +14,6 @@ class SpotifyClient():
     """Class for handling all Spotify API requests"""
 
     refresh_url = 'https://accounts.spotify.com/api/token'
-    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
     def __init__(self, user_id=None, username=None, **kwargs):
         """Initializes an object with all necessary items to create a Spotify Client"""
@@ -34,7 +36,7 @@ class SpotifyClient():
     def connect(self):
         """Authentication for Spotify Client
         token = util.prompt_for_user_token(self.username, self.scope, client_id=self.client_id,
-                                           client_secret=self.client_secret, redirect_uri=self.redirect_uri) 
+                                           client_secret=self.client_secret, redirect_uri=self.redirect_uri)
         """
         self.refresh_access()
 
@@ -71,14 +73,13 @@ class SpotifyClient():
             if playlist['name'] == playlist_name:
                 pid = playlist['id']
         if pid == -1:
-            print("Playlist with name '%s' not found!" % playlist_name)
-            #self.client.user_create_playlist(self.user_id, playlist_name)
-            exit()
+            app.logger.error("Playlist with name '%s' not found!" % playlist_name)
+            raise ValueError("Playlist with name '%s' not found!" % playlist_name)
         return pid
 
     def get_playlist_tracks(self, playlist_name, fields=None):
         """Returns the filtered track information of a given playlist name"""
-        logging.info(f"Fetching tracks for playlist {playlist_name}")
+        app.logger.info(f"Fetching tracks for playlist {playlist_name}")
         fields = self.fields_filter if fields is None else fields
         pid = self.get_playlist_id(playlist_name)
         tracks = self.max_out_with_offset(
@@ -119,6 +120,7 @@ class SpotifyClient():
 
     def move_tracks(self, from_playlist, to_playlist):
         """Move all tracks from one playlist to another"""
+        app.logger.info(f"Moving tracks from {from_playlist} to {to_playlist}")
         from_id = self.get_playlist_id(from_playlist)
         to_id = self.get_playlist_id(to_playlist)
         tracks = self.get_playlist_tracks(from_playlist)
@@ -129,21 +131,27 @@ class SpotifyClient():
                                 tracks_to_move, user=self.user_id, playlist_id=from_id)
 
     def refresh_access(self):
-        if self.last_refresh == 0 or datetime.datetime.now() > self.last_refresh + datetime.timedelta(minutes=55):
-            logging.info('Invalid or nonexistant Spotify token, requesting new token now')
+        if self.last_refresh == 0 or datetime.datetime.utcnow() > self.last_refresh + datetime.timedelta(minutes=55):
+            app.logger.info(
+               'Invalid or nonexistant Spotify token, requesting new token now')
             header_auth_info = self.client_id + ":" + self.client_secret
-            b64_header_auth_info = base64.urlsafe_b64encode(header_auth_info.encode()).decode()
-            headers = {'Authorization': f"Basic {b64_header_auth_info}", 'Content-Type': 'application/x-www-form-urlencoded'}
-            payload = {'grant_type': 'refresh_token', 'refresh_token': self.refresh_token}
-            refresh_request = requests.post(self.refresh_url, headers=headers, data=payload)
+            b64_header_auth_info = base64.urlsafe_b64encode(
+                header_auth_info.encode()).decode()
+            headers = {'Authorization': f"Basic {b64_header_auth_info}",
+                'Content-Type': 'application/x-www-form-urlencoded'}
+            payload = {'grant_type': 'refresh_token',
+                'refresh_token': self.refresh_token}
+            refresh_request = requests.post(
+                self.refresh_url, headers=headers, data=payload)
             self.access_token = refresh_request.json()['access_token']
             self.client = spotipy.Spotify(auth=self.access_token)
-            self.last_refresh = datetime.datetime.now()
+            self.last_refresh = datetime.datetime.utcnow()
         else:
-            logging.info('Token is still valid')
+           app.logger.info('Token is still valid')
 
     def rename_playlist(self, old_playlist_name, new_playlist_name):
         """Renames a playlist given old and new playlists"""
+        app.logger.info(f"Renaming {old_playlist_name} to {new_playlist_name}")
         self.client.user_playlist_change_details(
             self.user_id, self.get_playlist_id(old_playlist_name), new_playlist_name)
 

@@ -1,19 +1,20 @@
+import sys
+sys.path.append('..')
+
+from slackapp import app
 from calendar import monthrange
 import chart_studio
 import chart_studio.plotly as plot
 import collections
 import datetime
 from datetime import date
-import logging
 import os
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import subprocess
+import time
 import uuid
-
-logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
-
 
 class Plotter():
     """Class to plot a variety of graphs"""
@@ -51,7 +52,7 @@ class Plotter():
             fig.show()
         if self.host_online:
             url = plot.plot(fig, filename=image_name, auto_open=False)
-            logging.info(f"Image successfully created and hosted at {url}")
+            app.logger.info(f"Image successfully created and hosted at {url}")
         else:
             if not os.path.exists("images"):
                 os.mkdir("images")
@@ -60,7 +61,7 @@ class Plotter():
 
     def line_graph(self, x, y, xaxis=None, yaxis=None, title='line_graph'):
         """Create a line graph with provided information"""
-        logging.info(f"Creating line graph with title {title}")
+        app.logger.info(f"Creating line graph with title {title}")
         fig = go.Figure(data=go.Scatter(x=list(x), y=list(y)))
         fig.update_layout(title=title,
                           xaxis_title=xaxis,
@@ -79,7 +80,7 @@ class Plotter():
 
 def avg_audio_features(song_features):
     """Returns the avg audio features for a given list of songs"""
-    logging.info("Calculating average audio features")
+    app.logger.info("Calculating average audio features")
     avg_features = {"acousticness": 0,
                     "danceability": 0,
                     "instrumentalness": 0,
@@ -99,7 +100,7 @@ def avg_audio_features(song_features):
 def track_count_per_day(playlist_items, pad_to_today=False, pad_to_month_end=False):
     """Returns the amount of songs added to a playlist for each day of a month"""
     """One month of a playlist is passed in"""
-    logging.info("Calculating track count per day")
+    app.logger.info("Calculating track count per day")
     prev_track_date = datetime.datetime.strptime(
         playlist_items[0]['added_at'], '%Y-%m-%dT%H:%M:%SZ')
     day_song_counter = {}
@@ -133,7 +134,7 @@ def track_count_per_day(playlist_items, pad_to_today=False, pad_to_month_end=Fal
 def track_count_per_month(playlist_items, all_songs_sr_analysis=False, pad_to_today=False):
     """Returns the amount of songs added to a playlist for each month"""
     """Full playlist is passed in"""
-    logging.info("Calculating track count per month")
+    app.logger.info("Calculating track count per month")
     prev_track_date = datetime.datetime.strptime(
         playlist_items[0]['added_at'], '%Y-%m-%dT%H:%M:%SZ')
     month_song_counter = {}
@@ -177,7 +178,7 @@ def track_count_per_month(playlist_items, all_songs_sr_analysis=False, pad_to_to
 
 def track_count_per_user(playlist_items):
     """Returns the amount of songs per user that were added to a playlist"""
-    logging.info("Calculating track count per user")
+    app.logger.info("Calculating track count per user")
     user_song_counter = {}
     for track in playlist_items:
         if track['added_by']['id'] in user_song_counter:

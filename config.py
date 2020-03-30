@@ -7,9 +7,9 @@ class Config(object):
 
     SLACK_REQUEST_TOKEN = os.environ.get('SLACK_REQUEST_TOKEN', None)
     SLACK_TEAM_ID = os.environ.get('SLACK_TEAM_ID', None)
-    SLACK_BOT_ADMIN = os.environ.get('SLACK_BOT_ADMIN', None)
 
     CHART_STUDIO_KEY = os.environ.get('CHART_STUDIO_KEY', None)
     
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI', None)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ECHO = False

@@ -74,6 +74,9 @@ def user_analysis(channel_id, playlist_name):
             }
         ]
         sl_client.post_block(image_block)
+    last_slack_call_config = models.Config.query.filter_by(config_name="LAST_SLASH_COMMAND_TIME").first()        
+    last_slack_call_config.value = datetime.utcnow().strftime(date_format)
+    db.session.commit()            
     app.logger.info("Request completed")
 
 
@@ -116,6 +119,9 @@ def date_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end):
         ]
 
         sl_client.post_block(image_blocks)
+    last_slack_call_config = models.Config.query.filter_by(config_name="LAST_SLASH_COMMAND_TIME").first()        
+    last_slack_call_config.value = datetime.utcnow().strftime(date_format)
+    db.session.commit()            
     app.logger.info("Request completed")
 
 
@@ -159,6 +165,9 @@ def properties_analysis(channel_id, playlist_name):
             }
         ]
         sl_client.post_block(image_block)
+    last_slack_call_config = models.Config.query.filter_by(config_name="LAST_SLASH_COMMAND_TIME").first()        
+    last_slack_call_config.value = datetime.utcnow().strftime(date_format)
+    db.session.commit()    
     app.logger.info("Request completed")
 
 
@@ -179,6 +188,8 @@ def refresh_playlist(channel_id, old_playlist_name, new_playlist_name, all_playl
         sp_client.rename_playlist(old_playlist_name, new_playlist_name)
         current_playlist_link = sp_client.get_playlist_url(new_playlist_name)
         last_refresh_config.value = datetime.utcnow().strftime(date_format)
+        last_slack_call_config = models.Config.query.filter_by(config_name="LAST_SLASH_COMMAND_TIME").first()        
+        last_slack_call_config.value = datetime.utcnow().strftime(date_format)
         db.session.commit()
         sl_client.post_message(
             f"`{new_playlist_name}` is now ready! Add songs here: {current_playlist_link}")

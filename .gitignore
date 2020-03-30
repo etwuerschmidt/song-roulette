@@ -1,10 +1,9 @@
 #Directories
-**/__pycache__
 **/data
 **/images
+**/__pycache__
 **/venv
 
 #File extensions
 *.json
 *.cache-Eric Wuerschmidt
-*.log

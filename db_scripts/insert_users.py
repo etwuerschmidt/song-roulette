@@ -14,6 +14,7 @@ def first_insert(user_info):
     all_db_users = models.User.query.all()
 
 def second_insert(user_info):
+    return "Run in dev and prod"
     for user in user_info:
         admin_bool = True if user_info[user]["is_admin"] == "True" else False
         dev_bool = True if user_info[user]["dev_access"] == "True" else False

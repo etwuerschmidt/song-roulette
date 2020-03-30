@@ -5,6 +5,7 @@ sys.path.append('..')
 from slackapp import date_format, db, models
 
 def first_insert():
+    return "Run in dev and prod"
     insert_time = datetime.utcnow()
     last_refresh = models.Config('LAST_PLAYLIST_REFRESH_TIME', insert_time.strftime(date_format), 'The last time that the playlist was refreshed through a Slack call.')
     last_slash_call = models.Config('LAST_SLASH_COMMAND_TIME', insert_time.strftime(date_format), 'The last time a Slack slash command was called.')

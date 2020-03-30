@@ -47,17 +47,19 @@ class Plotter():
     def graph_view_save(self, fig):
         image_name = "{0} {1}".format(fig.layout['title']['text'], str(uuid.uuid1())).replace(
             " ", "_").replace(":", "_").replace("/", "_")
-        url = None
         if self.display:
             fig.show()
         if self.host_online:
             url = plot.plot(fig, filename=image_name, auto_open=False)
             app.logger.info(f"Image successfully created and hosted at {url}")
+            return url
         else:
             if not os.path.exists("images"):
                 os.mkdir("images")
             fig.write_image(f"images/{image_name}.png")
-        return url
+            return image_name
+        return None
+        
 
     def line_graph(self, x, y, xaxis=None, yaxis=None, title='line_graph'):
         """Create a line graph with provided information"""

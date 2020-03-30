@@ -1,11 +1,11 @@
 # Script for monthly refresh
-import app.clients.analysis as AnalysisClient
+import slackapp.clients.analysis as AnalysisClient
 import argparse
 import datetime
 from datetime import date, timedelta
 import json
-from app.clients.messaging import SlackClient
-from app.clients.spotify import SpotifyClient
+from slackapp.clients.messaging import SlackClient
+from slackapp.clients.spotify import SpotifyClient
 
 def analysis(old_playlist_name, month_tracks):
     print("Running analysis...")
@@ -23,21 +23,21 @@ def analysis(old_playlist_name, month_tracks):
             user_count_by_name[user_info[user]['name']] = count
             slack_usernames += f"<{user_info[user]['slack_id']}> "
     user_graph_title = f"{old_playlist_name} Tracks Added per User"
-    graph_draw.bar_graph(user_count_by_name.keys(), user_count_by_name.values(), title=user_graph_title, xaxis='User', yaxis='Songs Added')
+    mod_user_title = graph_draw.bar_graph(user_count_by_name.keys(), user_count_by_name.values(), title=user_graph_title, xaxis='User', yaxis='Songs Added')
 
     day_count = AnalysisClient.track_count_per_day(month_tracks, pad_to_month_end=True)
     day_graph_title = f"{old_playlist_name} Tracks Added by Day"
-    graph_draw.line_graph(day_count.keys(), day_count.values(), title=day_graph_title, xaxis='Day of month', yaxis='Songs Added')
+    mod_day_title = graph_draw.line_graph(day_count.keys(), day_count.values(), title=day_graph_title, xaxis='Day of month', yaxis='Songs Added')
 
     track_uris = sp_client.filter_tracks(month_tracks, 'uri')
     audio_features = sp_client.get_audio_features(track_uris)
     avg_audio_features = AnalysisClient.avg_audio_features(audio_features)
     features_graph_title = f"{old_playlist_name} Audio Features"
-    graph_draw.radar_graph(avg_audio_features, title=features_graph_title)
+    mod_features_title = graph_draw.radar_graph(avg_audio_features, title=features_graph_title)
 
-    graph_titles = {'user': user_graph_title, 
-                    'day': day_graph_title,
-                    'features': features_graph_title}
+    graph_titles = {'user': mod_user_title, 
+                    'day': mod_day_title,
+                    'features': mod_features_title}
 
     return (graph_titles, slack_usernames)
 

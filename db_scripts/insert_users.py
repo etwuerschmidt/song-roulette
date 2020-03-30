@@ -24,6 +24,7 @@ def second_insert(user_info):
         db.session.commit()
 
 def third_insert(user_info):
+    return "Run in dev and prod"
     for user in user_info:
         if "None" in user:
             admin_bool = True if user_info[user]["is_admin"] == "True" else False

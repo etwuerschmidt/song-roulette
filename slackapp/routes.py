@@ -287,3 +287,18 @@ def analysis():
         response_type="in_channel",
         text=f"Processing your analysis request for `{analysis_type}` now - this may take a little bit"
     )
+
+@app.route('/wake', methods=['POST'])
+def wake():
+    user_id = request.form.get('user_id', None)
+    response_text = ''
+    if user_id:
+        valid_request(request)
+        valid_user(request)
+        response_text = f"<@{user_id}> I'm up! If you received a timeout that's to be expected. I'll be awake for the next 30 minutes."
+    else:
+        response_text = f"I'm up! I'll be awake for the next 30 minutes."
+    return jsonify(
+        response_type="in_channel",
+        text=response_text
+    )

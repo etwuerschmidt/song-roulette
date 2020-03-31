@@ -74,9 +74,10 @@ def user_analysis(channel_id, playlist_name):
             }
         ]
         sl_client.post_block(image_block)
-    last_slack_call_config = models.Config.query.filter_by(config_name="LAST_SLASH_COMMAND_TIME").first()        
+    last_slack_call_config = models.Config.query.filter_by(
+        config_name="LAST_SLASH_COMMAND_TIME").first()
     last_slack_call_config.value = datetime.utcnow().strftime(date_format)
-    db.session.commit()            
+    db.session.commit()
     app.logger.info("Request completed")
 
 
@@ -119,9 +120,10 @@ def date_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end):
         ]
 
         sl_client.post_block(image_blocks)
-    last_slack_call_config = models.Config.query.filter_by(config_name="LAST_SLASH_COMMAND_TIME").first()        
+    last_slack_call_config = models.Config.query.filter_by(
+        config_name="LAST_SLASH_COMMAND_TIME").first()
     last_slack_call_config.value = datetime.utcnow().strftime(date_format)
-    db.session.commit()            
+    db.session.commit()
     app.logger.info("Request completed")
 
 
@@ -165,9 +167,10 @@ def properties_analysis(channel_id, playlist_name):
             }
         ]
         sl_client.post_block(image_block)
-    last_slack_call_config = models.Config.query.filter_by(config_name="LAST_SLASH_COMMAND_TIME").first()        
+    last_slack_call_config = models.Config.query.filter_by(
+        config_name="LAST_SLASH_COMMAND_TIME").first()
     last_slack_call_config.value = datetime.utcnow().strftime(date_format)
-    db.session.commit()    
+    db.session.commit()
     app.logger.info("Request completed")
 
 
@@ -188,7 +191,8 @@ def refresh_playlist(channel_id, old_playlist_name, new_playlist_name, all_playl
         sp_client.rename_playlist(old_playlist_name, new_playlist_name)
         current_playlist_link = sp_client.get_playlist_url(new_playlist_name)
         last_refresh_config.value = datetime.utcnow().strftime(date_format)
-        last_slack_call_config = models.Config.query.filter_by(config_name="LAST_SLASH_COMMAND_TIME").first()        
+        last_slack_call_config = models.Config.query.filter_by(
+            config_name="LAST_SLASH_COMMAND_TIME").first()
         last_slack_call_config.value = datetime.utcnow().strftime(date_format)
         db.session.commit()
         sl_client.post_message(
@@ -233,6 +237,18 @@ def valid_user(request):
         return jsonify(
             text=f"Sorry, only <{admin_user.slack_id}> has access to this command right now."
         )
+
+
+def wake_up(response_url, response_text):
+    app.logger.info("Responding to wake request")
+    data = json.dumps({
+        "response_type": "in_channel",
+        "text": response_text
+    })
+    try:
+        requests.post(response_url, data=data)
+    except Exception as e:
+        app.logger.exception(e)
 
 
 @app.route('/refresh', methods=['POST'])
@@ -288,6 +304,7 @@ def analysis():
         text=f"Processing your analysis request for `{analysis_type}` now - this may take a little bit"
     )
 
+
 @app.route('/wake', methods=['POST'])
 def wake():
     user_id = request.form.get('user_id', None)
@@ -296,11 +313,16 @@ def wake():
         app.logger.info(f"Received a wake request from {user_id}")
         valid_request(request)
         valid_user(request)
-        response_text = f"<@{user_id}> I'm up! If you received a timeout that's to be expected. I'll be awake for the next 30 minutes."
+        response_text = f"<@{user_id}> I'm up! If you received a timeout error earlier that's to be expected. I'll be awake for the next 30 minutes."
     else:
-        app.logger.info(f"Received a wake request with no user - this might be an external call to this endpoint")
+        app.logger.info(
+            f"Received a wake request with no user - this might be an external call to this endpoint")
         response_text = f"I'm up! I'll be awake for the next 30 minutes."
+    worker_thread = Thread(target=wake_up, args=(
+        request.form['response_url'], response_text,))
+    worker_thread.start()
+
     return jsonify(
         response_type="in_channel",
-        text=response_text
+        text="Processing your wake request now"
     )

@@ -293,10 +293,12 @@ def wake():
     user_id = request.form.get('user_id', None)
     response_text = ''
     if user_id:
+        app.logger.info(f"Received a wake request from {user_id}")
         valid_request(request)
         valid_user(request)
         response_text = f"<@{user_id}> I'm up! If you received a timeout that's to be expected. I'll be awake for the next 30 minutes."
     else:
+        app.logger.info(f"Received a wake request with no user - this might be an external call to this endpoint")
         response_text = f"I'm up! I'll be awake for the next 30 minutes."
     return jsonify(
         response_type="in_channel",

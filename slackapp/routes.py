@@ -3,7 +3,7 @@ import slackapp.clients.spotify as sp
 import slackapp.clients.analysis as an
 import slackapp.clients.messaging as mes
 from datetime import date, datetime, timedelta
-from flask import abort, jsonify, request, Response
+from flask import abort, jsonify, redirect, request, Response, url_for
 import json
 import os
 import requests
@@ -27,10 +27,13 @@ def all_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end):
     app.logger.info(f"Beginning to run all analysis")
     try:
         user_analysis(channel_id, playlist_name)
-        date_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end)
+        date_analysis(channel_id, playlist_name,
+                      pad_to_today, pad_to_month_end)
         properties_analysis(channel_id, playlist_name)
     except:
-        app.logger.error("Issue occurred while processing all analysis. See error above.")
+        raise Exception("Error while running all analysis")
+        app.logger.error(
+            "Issue occurred while processing all analysis. See error above.")
 
 
 def user_analysis(channel_id, playlist_name):
@@ -42,7 +45,6 @@ def user_analysis(channel_id, playlist_name):
         timestamp = datetime.utcnow().strftime(date_format)
         sl_client.post_message(
             mes.slack_error_msg.format(timestamp, sl_client.admin))
-        return
     if len(month_tracks) == 0:
         sl_client.post_message(
             f"`{playlist_name}` is currently empty! Add songs to see user data.")
@@ -93,7 +95,6 @@ def date_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end):
         timestamp = datetime.utcnow().strftime(date_format)
         sl_client.post_message(
             mes.slack_error_msg.format(timestamp, sl_client.admin))
-        return
     if len(month_tracks) == 0:
         sl_client.post_message(
             f"`{playlist_name}` is currently empty! Add songs to see date data.")
@@ -139,7 +140,6 @@ def properties_analysis(channel_id, playlist_name):
         timestamp = datetime.utcnow().strftime(date_format)
         sl_client.post_message(
             mes.slack_error_msg.format(timestamp, sl_client.admin))
-        return
     if len(month_tracks) == 0:
         sl_client.post_message(
             f"`{playlist_name}` is currently empty! Add songs to see audio properties data.")
@@ -189,10 +189,15 @@ def refresh_playlist(channel_id, old_playlist_name, new_playlist_name, all_playl
             f"Sorry, but the playlist has already been refreshed this month, at {last_refresh_config.value} UTC")
         app.logger.info("Request aborting")
     else:
-        all_analysis(channel_id, old_playlist_name, False, True)
-        sp_client.move_tracks(old_playlist_name, all_playlist_name)
-        sp_client.rename_playlist(old_playlist_name, new_playlist_name)
-        current_playlist_link = sp_client.get_playlist_url(new_playlist_name)
+        try:
+            all_analysis(channel_id, old_playlist_name, False, True)            
+            sp_client.move_tracks(old_playlist_name, all_playlist_name)
+            sp_client.rename_playlist(old_playlist_name, new_playlist_name)
+            current_playlist_link = sp_client.get_playlist_url(new_playlist_name)
+        except:
+            app.logger.error(
+                "Issue occurred while processing playlist. See error above.")
+            return
         last_refresh_config.value = datetime.utcnow().strftime(date_format)
         last_slack_call_config = models.Config.query.filter_by(
             config_name="LAST_SLASH_COMMAND_TIME").first()
@@ -213,7 +218,7 @@ def set_playlist_names(request):
     request_info = request_info.replace(' test', '')
 
     current_month_name = date.today().strftime("%B")
-    last_month_name = (date.today() - (timedelta(weeks=3))).strftime("%B")
+    last_month_name = (date.today() - (timedelta(weeks=5))).strftime("%B")
     playlist_prefix = "TEST " if test else "Song Roulette: "
     channel_name = "#sr-test" if test else "#dank-tunes"
     current_playlist_link = None
@@ -288,6 +293,14 @@ def refresh():
     )
 
 
+@app.route('/test-refresh', methods=['POST'])
+def test_refresh():
+    app.logger.info(f"TEST REFRESH METHOD")
+    valid_request(request)
+    valid_user(request, access_type="dev")
+    return redirect(url_for('refresh'))
+
+
 @app.route('/analysis', methods=['POST'])
 def analysis():
     app.logger.info(
@@ -325,6 +338,14 @@ def analysis():
     )
 
 
+@app.route('/test-analysis', methods=['POST'])
+def test_analysis():
+    app.logger.info(f"TEST ANALYSIS METHOD")
+    valid_request(request)
+    valid_user(request, access_type="dev")
+    return redirect(url_for('analysis'))
+
+
 @app.route('/wake', methods=['POST'])
 def wake():
     user_id = request.form.get('user_id', None)
@@ -346,3 +367,11 @@ def wake():
         response_type="in_channel",
         text="Processing your wake request now"
     )
+
+
+@app.route('/test-wake', methods=['POST'])
+def test_wake():
+    app.logger.info(f"TEST WAKE METHOD")
+    valid_request(request)
+    valid_user(request, access_type="dev")
+    return redirect(url_for('wake'))

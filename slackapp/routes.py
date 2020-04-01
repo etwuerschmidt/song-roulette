@@ -3,7 +3,7 @@ import slackapp.clients.spotify as sp
 import slackapp.clients.analysis as an
 import slackapp.clients.messaging as mes
 from datetime import date, datetime, timedelta
-from flask import abort, jsonify, request
+from flask import abort, jsonify, request, Response
 import json
 import os
 import requests
@@ -38,7 +38,7 @@ def user_analysis(channel_id, playlist_name):
     except:
         timestamp = datetime.utcnow().strftime(date_format)
         sl_client.post_message(
-            f"Something went wrong at `{timestamp} UTC`! Please check the logs to figure out what happened.")
+            mes.slack_error_msg.format(timestamp, sl_client.admin))
         return
     if len(month_tracks) == 0:
         sl_client.post_message(
@@ -89,7 +89,7 @@ def date_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end):
     except:
         timestamp = datetime.utcnow().strftime(date_format)
         sl_client.post_message(
-            f"Something went wrong at `{timestamp} UTC`! Please check the logs to figure out what happened.")
+            mes.slack_error_msg.format(timestamp, sl_client.admin))
         return
     if len(month_tracks) == 0:
         sl_client.post_message(
@@ -135,7 +135,7 @@ def properties_analysis(channel_id, playlist_name):
     except:
         timestamp = datetime.utcnow().strftime(date_format)
         sl_client.post_message(
-            f"Something went wrong at `{timestamp} UTC`! Please check the logs to figure out what happened.")
+            mes.slack_error_msg.format(timestamp, sl_client.admin))
         return
     if len(month_tracks) == 0:
         sl_client.post_message(
@@ -227,16 +227,33 @@ def valid_request(request):
     valid_token = request.form['token'] == app.config['SLACK_REQUEST_TOKEN']
     team_id = request.form['team_id'] == app.config['SLACK_TEAM_ID']
     if not (valid_token and team_id):
+        app.logger.error(
+            f"Invalid request with token {request.form['token']} and team {request.form['team_id']}")
         abort(400)
 
 
-def valid_user(request):
-    app.logger.info(f"Validating user")
-    admin_user = models.User.query.filter_by(is_admin=True).first()
-    if not request.form['user_id'] == admin_user.slack_id[1:]:
-        return jsonify(
-            text=f"Sorry, only <{admin_user.slack_id}> has access to this command right now."
-        )
+def valid_user(request, access_type='prod'):
+    app.logger.info(f"Validating user has access to {access_type}")
+    users = []
+    if access_type == 'admin':
+        users = models.User.query.filter_by(is_admin=True).all()
+    elif access_type == 'dev':
+        users = models.User.query.filter_by(dev_access=True).all()
+    elif access_type == 'prod':
+        users = models.User.query.filter_by(prod_access=True).all()
+    else:
+        timestamp = datetime.utcnow().strftime(date_format)
+        app.logger.error(f"Invalid user type {access_type}")
+        return jsonify(mes.slack_error_msg(timestamp))
+
+    valid_user_ids = [user.slack_id for user in users]
+    request_user = f"@{request.form['user_id']}"
+
+    if not request_user in valid_user_ids:
+        app.logger.error(
+            f"User {request.form['user_id']} does not have {access_type} access")
+        abort(
+            Response(f"Sorry, looks like you don't have `{access_type}` access."))
 
 
 def wake_up(response_url, response_text):

@@ -210,7 +210,7 @@ def set_playlist_names(request):
     request_info = request_info.replace(' test', '')
 
     current_month_name = date.today().strftime("%B")
-    last_month_name = (date.today() - (timedelta(weeks=5))).strftime("%B")
+    last_month_name = (date.today() - (timedelta(weeks=3))).strftime("%B")
     playlist_prefix = "TEST " if test else "Song Roulette: "
     channel_name = "#sr-test" if test else "#dank-tunes"
     current_playlist_link = None

@@ -25,9 +25,12 @@ def connect_clients(channel_id):
 
 def all_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end):
     app.logger.info(f"Beginning to run all analysis")
-    user_analysis(channel_id, playlist_name)
-    date_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end)
-    properties_analysis(channel_id, playlist_name)
+    try:
+        user_analysis(channel_id, playlist_name)
+        date_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end)
+        properties_analysis(channel_id, playlist_name)
+    except:
+        app.logger.error("Issue occurred while processing all analysis. See error above.")
 
 
 def user_analysis(channel_id, playlist_name):

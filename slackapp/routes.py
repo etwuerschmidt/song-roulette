@@ -58,10 +58,12 @@ def user_analysis(channel_id, playlist_name):
         user_graph_title = f"{playlist_name} Tracks Added per User"
         image_url = graph_draw.bar_graph(user_count_by_name.keys(), user_count_by_name.values(
         ), title=user_graph_title, xaxis='User', yaxis='Songs Added')
-
         sl_client.post_message(
             f"Thanks to all the contributors! {slack_usernames}")
-
+        
+        # image_url splice strips away 'https://' and trailing '/'
+        png_image_url = 'https://chart-studio.' + image_url[8:-1] + '.png'
+        app.logger.info(f"Posting image with url {png_image_url}")
         image_block = [
             {
                 "type": "image",
@@ -69,7 +71,7 @@ def user_analysis(channel_id, playlist_name):
                     "type": "plain_text",
                     "text": "User frequency plot"
                 },
-                "image_url": image_url[:-1] + '.png',
+                "image_url": png_image_url,
                 "alt_text": "This month's user data"
             }
         ]
@@ -82,7 +84,7 @@ def user_analysis(channel_id, playlist_name):
 
 
 def date_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end):
-    app.logger.info("Responding to data analysis request")
+    app.logger.info("Responding to date analysis request")
     sp_client, sl_client = connect_clients(channel_id)
     try:
         month_tracks = sp_client.get_playlist_tracks(playlist_name)
@@ -103,10 +105,12 @@ def date_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end):
         day_graph_title = f"{playlist_name} Tracks Added by Day"
         image_url = graph_draw.line_graph(day_count.keys(), day_count.values(
         ), title=day_graph_title, xaxis='Day of month', yaxis='Songs Added')
-
+        
         sl_client.post_message(
             f"Here are the songs that have been added per day for `{playlist_name}`")
-
+        # image_url splice strips away 'https://' and trailing '/'
+        png_image_url = 'https://chart-studio.' + image_url[8:-1] + '.png'
+        app.logger.info(f"Posting image with url {png_image_url}")
         image_blocks = [
             {
                 "type": "image",
@@ -114,7 +118,7 @@ def date_analysis(channel_id, playlist_name, pad_to_today, pad_to_month_end):
                     "type": "plain_text",
                     "text": "Date frequency plot"
                 },
-                "image_url": image_url[:-1] + '.png',
+                "image_url": png_image_url,
                 "alt_text": "This month's date data"
             }
         ]
@@ -154,7 +158,9 @@ def properties_analysis(channel_id, playlist_name):
 
         sl_client.post_message(
             f"Here are the audio characteristics of `{playlist_name}`")
-
+        # image_url splice strips away 'https://' and trailing '/'
+        png_image_url = 'https://chart-studio.' + image_url[8:-1] + '.png'
+        app.logger.info(f"Posting image with url {png_image_url}")
         image_block = [
             {
                 "type": "image",
@@ -162,7 +168,7 @@ def properties_analysis(channel_id, playlist_name):
                     "type": "plain_text",
                     "text": "Audio analysis plot"
                 },
-                "image_url": image_url[:-1] + '.png',
+                "image_url": png_image_url,
                 "alt_text": "This month's properties data"
             }
         ]
@@ -200,12 +206,7 @@ def refresh_playlist(channel_id, old_playlist_name, new_playlist_name, all_playl
         app.logger.info("Request completed")
 
 
-def set_playlist_names(request):
-    test = False
-    if "test" in request.form['text']:
-        valid_user(request)
-        test = True
-
+def set_playlist_names(request, test=False):
     request_info = request.form['text']
     request_info = request_info.replace(' test', '')
 
@@ -285,6 +286,23 @@ def refresh():
     )
 
 
+@app.route('/test-refresh', methods=['POST'])
+def test_refresh():
+    app.logger.info(
+        f"Received a refresh request from {request.form['user_id']}")
+    valid_request(request)
+    valid_user(request, access_type='dev')
+    request_type, old_playlist_name, all_playlist_name, new_playlist_name = set_playlist_names(
+        request, test=True)
+    worker_thread = Thread(target=refresh_playlist, args=(
+        request.form['channel_id'], old_playlist_name, new_playlist_name, all_playlist_name, ))
+    worker_thread.start()
+    return jsonify(
+        response_type="in_channel",
+        text=f"Processing your refresh request for `{old_playlist_name}` now - this may take a little bit"
+    )
+
+
 @app.route('/analysis', methods=['POST'])
 def analysis():
     app.logger.info(
@@ -321,6 +339,41 @@ def analysis():
         text=f"Processing your analysis request for `{analysis_type}` now - this may take a little bit"
     )
 
+@app.route('/test-analysis', methods=['POST'])
+def test_analysis():
+    app.logger.info(
+        f"Received an analysis request from {request.form['user_id']}")
+    valid_request(request)
+    valid_user(request, access_type='dev')
+    analysis_type, old_playlist_name, all_playlist_name, new_playlist_name = set_playlist_names(
+        request, test=True)
+
+    if analysis_type == "users":
+        worker_thread = Thread(target=user_analysis, args=(
+            request.form['channel_id'], new_playlist_name, ))
+        worker_thread.start()
+    elif analysis_type == "dates":
+        worker_thread = Thread(target=date_analysis, args=(
+            request.form['channel_id'], new_playlist_name, True, False, ))
+        worker_thread.start()
+    elif analysis_type == "properties":
+        worker_thread = Thread(target=properties_analysis, args=(
+            request.form['channel_id'], new_playlist_name, ))
+        worker_thread.start()
+    elif analysis_type == "all":
+        worker_thread = Thread(target=all_analysis, args=(
+            request.form['channel_id'], new_playlist_name, True, False))
+        worker_thread.start()
+    else:
+        return jsonify(
+            response_type="in_channel",
+            text=f"`{analysis_type}` is not supported with `/analysis`. Please use `all`, `users`, `dates`, or `properties`"
+        )
+
+    return jsonify(
+        response_type="in_channel",
+        text=f"Processing your analysis request for `{analysis_type}` now - this may take a little bit"
+    )
 
 @app.route('/wake', methods=['POST'])
 def wake():
@@ -343,3 +396,27 @@ def wake():
         response_type="in_channel",
         text="Processing your wake request now"
     )
+
+
+@app.route('/test-wake', methods=['POST'])
+def wake():
+    user_id = request.form.get('user_id', None)
+    response_text = ''
+    if user_id:
+        app.logger.info(f"Received a wake request from {user_id}")
+        valid_request(request)
+        valid_user(request, access_type='dev')
+        response_text = f"<@{user_id}> I'm up! If you received a timeout error earlier that's to be expected. I'll be awake for the next 30 minutes."
+    else:
+        app.logger.info(
+            f"Received a wake request with no user - this might be an external call to this endpoint")
+        response_text = f"I'm up! I'll be awake for the next 30 minutes."
+    worker_thread = Thread(target=wake_up, args=(
+        request.form['response_url'], response_text,))
+    worker_thread.start()
+
+    return jsonify(
+        response_type="in_channel",
+        text="Processing your wake request now"
+    )
+

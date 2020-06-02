@@ -1,12 +1,13 @@
+import time
+import slack
+import os
+from datetime import datetime
+from slackapp import app, date_format
 import sys
 sys.path.append('..')
-from slackapp import app, date_format
-from datetime import datetime
-import os
-import slack
-import time
 
 slack_error_msg = "Something went wrong at {0} UTC! <@{1}>, please check the logs to figure out what happened."
+
 
 class SlackClient():
     """Class for handling all Slack messaging"""
@@ -27,9 +28,14 @@ class SlackClient():
         """Posts specified blocks to either default or specified channel"""
         try:
             self.client.chat_postMessage(
-            channel=self.channel if not channel else channel, blocks=blocks)
-        except Exception as e:
-            app.logger.exception(e)
+                channel=self.channel if not channel else channel, blocks=blocks)
+        except slack.errors.SlackApiError as block_error:
+            app.logger.exception(block_error)
+            timestamp = datetime.utcnow().strftime(date_format)
+            replacement_block_msg = f"Looks like there's been an issue embeddeding the image, but you can still view it at {blocks[0]['image_url']}"
+            self.post_message(replacement_block_msg)
+        except:
+            app.logger.exception(sys.exc_info()[0])
             timestamp = datetime.utcnow().strftime(date_format)
             self.post_message(slack_error_msg.format(timestamp, self.admin))
 
@@ -45,17 +51,16 @@ class SlackClient():
                 channel=self.channel if not channel else channel, text=message)
         except Exception as e:
             app.logger.exception(e)
-            timestamp=datetime.utcnow().strftime(date_format)
+            timestamp = datetime.utcnow().strftime(date_format)
             self.post_message(slack_error_msg.format(timestamp, self.admin))
-
 
     def set_channel(self, channel):
         """Sets the channel for messages to be posted to"""
-        self.channel=channel
+        self.channel = channel
 
 
 if __name__ == "__main__":
-    my_client=SlackClient()
+    my_client = SlackClient()
     my_client.connect()
     my_client.post_message("hello world!")
     exit()

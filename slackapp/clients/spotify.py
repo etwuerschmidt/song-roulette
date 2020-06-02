@@ -24,6 +24,7 @@ class SpotifyClient():
             'SPOTIPY_CLIENT_SECRET', os.environ['SPOTIPY_CLIENT_SECRET'])
         self.fields_filter = 'items(added_at,added_by,track(name,popularity,uri))'
         self.scope = "playlist-read-collaborative playlist-read-private playlist-modify-private playlist-modify-public"
+        self.redirect_uri = kwargs.get('SPOTIPY_REDIRECT_URI', os.environ['SPOTIPY_REDIRECT_URI'])
         # all_songs_sr_analysis should be taken into account for Song Roulette: All, since songs for a particular month are added on the first day
         # of the following month
         self.all_songs_sr_analysis = False
@@ -33,12 +34,13 @@ class SpotifyClient():
         self.refresh_token = os.environ['SPOTIFY_REFRESH_TOKEN']
         self.last_refresh = 0
 
-    def connect(self):
-        """Authentication for Spotify Client
-        token = util.prompt_for_user_token(self.username, self.scope, client_id=self.client_id,
-                                           client_secret=self.client_secret, redirect_uri=self.redirect_uri)
-        """
-        self.refresh_access()
+    def connect(self, with_prompt=False):
+        """Authentication for Spotify Client"""
+        if with_prompt:
+            token = util.prompt_for_user_token(self.username, self.scope, client_id=self.client_id,
+                               client_secret=self.client_secret, redirect_uri=self.redirect_uri)
+        else:
+            self.refresh_access()
 
     def filter_tracks(self, playlist_items, field):
         """Return a list of playlist items with the given filter field"""

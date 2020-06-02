@@ -6,20 +6,24 @@ Refresh monthly collaborative playlist and retrieve information for analysis usi
 To get started, run:
 
 ```
-> $env:FLASK_APP = "backend.py"
+> $env:FLASK_APP = "song_roulette.py"
 > $env:FLASK_ENV="development"
-> python backend.py
- * Serving Flask app "backend" (lazy loading)
+> ./venv/Scripts/activate
+> flask run
+ * Serving Flask app "song_roulette.py" (lazy loading)
  * Environment: development
  * Debug mode: on
  * Restarting with stat
-Connecting clients...
  * Debugger is active!
- * Debugger PIN: 597-063-403
+ * Debugger PIN: 127-141-204
  * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
 
  # In a separate terminal
  > ./ngrok http 5000
+ ...
+ Forwarding                    http://XXX.ngrok.io -> http://localhost:5000 
+
+ # Update Slash Command endpoint at https://api.slack.com/apps for the appropriate slash command
  ```
 
 The following installations are needed:

@@ -399,7 +399,7 @@ def wake():
 
 
 @app.route('/test-wake', methods=['POST'])
-def wake():
+def test_wake():
     user_id = request.form.get('user_id', None)
     response_text = ''
     if user_id:
